@@ -1,0 +1,188 @@
+\documentclass[draft, 12pt]{article}
+\usepackage[cp1251]{inputenc} % следующие две строки используются для
+\usepackage[english,russian]{babel}   % руссификации AmSLaTeX
+\usepackage{amsmath,amsfonts,amssymb,euscript,graphicx,wrapfig,multirow}
+\usepackage{dsfont}
+\textheight=240mm \textwidth=170mm
+\hoffset=-17mm % сдвиг влево
+\voffset=-17mm % сдвиг вверх
+
+\begin{document}
+
+\noindent УДК 517.925.7
+
+\begin{center}
+\textbf{О численном методе решения семейства интегро-дифференциальных уравнений с переменными коэффициентами, возникающих в финансовой математике} \\[3mm]
+\textbf{О.~Е.~Кудрявцев}\\[2mm]
+\emph{Ростовский Филиал РТА}
+
+\textbf{В.~В.~Родоченко}\\[2mm]
+\emph{Южный Федеральный Университет}
+\end{center}
+
+\section{Аннотация}
+В этой работе мы представляем алгоритм вычисления цены барьерного опциона при условии, что динамика цена базового актива подчиняется системе стохастических дифференциальных уравнений модели Бейтса. Основная идея состоит в том, что мы приближаем процесс CIR вариации на малых отрезках времени марковской цепью, затем в каждом из узлов цепи решаем задачи вычисления цены барьерного опциона при помощи метода линий с использованием приближённой факторизации Винера-Хопфа, получая итоговый ответ при помощи рекуррентной процедуры.
+
+\section{Введение}	
+
+Со времен фундаментальных работ Е.Б.Дынкина, Р.Фейнмана и М.Каца известно, что решение уравнения диффузии в определенной области может быть интерпретировано как математическое ожидание выхода из нее винеровского процесса. В дальнейших исследованиях эта взаимосвязь была распространена на более общие процессы - в частности,  негауссовы процессы Леви, траектории которых могут быть разрывными. 
+
+С точки зрения финансовой математики, вычисление такого рода функционалов связано с решением одной из важных прикладных задач вычислением цен производных финансовых инструментов, в частности - опционов.
+Рынок фьючерсных и опционных контрактов, называемый "срочным рынком" является одной из важнейших составляющих финансового рынка, поскольку его оборот может в десятки и более раз превышать объем торгов на рынке базовых активов. Причиной этого является тот факт, что производные финансовые инструменты предоставляют возможность управления финансовыми рисками.
+
+В этой работе мы будем иметь дело с системой стохастических дифференциальных уравнений, называемой "моделью Бейтса", описанной в работе [Bates], следующего вида: \\
+
+\begin{equation}
+\begin{array}{l}
+d\ln S_t = (r-\frac{V_t}{2})dt+\sqrt{V_t} dZ^S(t)+dJ_t,
+\smallskip\\
+dV_t= \kappa_V(\theta-V_t)dt+\sigma\sqrt{V_t}dZ^V_t,
+\smallskip\\
+\end{array}
+\end{equation}
+\\
+
+Система описывает поведение цены базового актива на финансовом рынке. Переменная $S_t$ описывает приращение цены актива, параметр $r \ge 0$ имеет смысл безрисковой процентной ставки, переменная $V_t$ описывает вариацию. Процессы $Z_S(t)$ и $Z_V(t)$ - винеровские, связанные коэффициентом корреляции $\rho$. $J_t = \sum^{N_t}_{k=0}J_k)$ - составной пуассоновский процесс, где $J_k \equiv N(\delta, \mu)$, а $N_t$ - пуассоновский процесс с интенсивностью $\lambda$, считающий скачки к моменту t. Процессы $Z(t)$ и $N_t$ независимы, и также не зависят от $J_k$. Параметр $\kappa$ определяет скорость <<возврата>> процесса вариации к <<долговременному>> среднему значению, $\sigma>0$ называется <<волатильностью>> вариации.
+
+В случае, если положить интенсивность скачков равной нулю, сохраняя динамику процесса вариации, система выродится в систему уравнений модели Хестона - одну из известных моделей со стохастической волатильностью, описанную в статье [Heston].
+
+Если положить $V_t$ постоянной, первое уравнение системы (1) вырождается в уравнение модели Мертона, которое представляет собой одну из наиболее известных классических моделей для описания динамики цены актива с использованием диффузии со скачками, описанную в статье [Merton]. Если положить, вместе с тем, интенсивность скачков равной нулю, модель сведётся к одной из наиболее исследованных и известных моделей финансового рынка - модели Блэка-Шоулза [B-S].
+
+Таким образом, модель Бейтса описывает поведение цены базового актива, вариация которого подчиняется процессу CIR из соответствующего уравнения модели Хестона, имеющего скачки, которые описываются составным пуассоновским процессом. Этот процесс был введён Бейтсом для рынка опционов на курсы валют с целью описать наблюдаемый эффект "улыбки волатильности".
+
+В рамках данной модели мы нами был разработан метод вычисления стоимости опционного контракта, называемого "барьерным опционом". Под <<барьерным опционом>> мы будем, аналогично [Кудрявцев, Chiarella, Zanette] понимать контракт, по которому выплачивается определённая сумма $G(S_T)$ в момент окончания срока действия контракта T, при условии, что в течение срока тействия контракта цена акции $S_T$ не упадёт ниже определённого барьера $H$ (down-and-out barrier option) или не поднимется выше определённого барьера $H$ (up-and-out barrier option). В частности, для опциона, дающего право продать акцию по цене $K$ ("опцион put"), 
+
+$$G(S)=max{0, K - S}$$
+
+Рассмотрим, для определённости, опцион <<put>>. Вычисление его цены в описанной модели сводится к вычислению следующего функционала: 
+
+\begin{equation}
+\begin{array}{l}
+F(S,V,t) = M[e^{-r(T-t)}  \mathcal{1} \underline{S_T>H} G_T(S)  S_0 = S, V_0 = V],
+\smallskip\\
+\underline{S_T} = \inf_{0\le t\le T}S_T,
+\smallskip\\
+\end{array}
+\end{equation}
+
+В случае опциона европейского стиля, где не рассматривается поглощающий барьер, методы, связанные с применением преобразования Фурье могут позволять получать явные формулы для модели Бейтса [Антонино, ссылка]. Для барьерных опционов явные формулы получить не удаётся.
+
+Основными методами вычисления таких функционалов являются методы Монте-Карло и конечно-разностные схемы. Обзор такого рода методов можно найти в статьях [Antonino, Chiarella] и монографии [Кудрявцев].  
+%In the case of plain vanilla European options, Fourier inversion methods \cite{CM} lead to closed-form formulas to compute the price under the Bates model. Nevertheless, in the American case the numerical literature is limited. Typically, numerical  methods are based on the use of the dynamic programming principle to which one applies either deterministic schemes  from numerical analysis and/or from tree methods or Monte Carlo techniques.
+%
+%The option pricing hybrid tree/finite-difference approach %for pricing European and American
+%we deal with,  derives from applying an efficient recombining binomial tree method in the direction of the volatility and the interest rate components, whereas the asset price component is locally treated by means of a one-dimensional partial integro-differential equation (PIDE), to which a finite-difference scheme is applied. Here, the numerical treatment of the nonlocal term coming from the jumps involves implicit-explicit techniques, as well as numerical quadratures. In comparison to what developed in \cite{bcz,bcz-hhw}, the novelty of this paper is in part related to the application to  the Bates-Hull-White process but it mainly consists in the theoretical study of the stability of the resulting numerical scheme for the computation of both European and American options. And we stress that we never require the validity of the Feller condition for the Cox-Ingersol-Ross (CIR) dynamics \cite{cir} of the volatility process.
+%
+%The existing literature on numerical schemes for the option pricing problem in this framework is quite poor. Tree methods are available only for the Heston model, see \cite{VN},  but they are not really efficient when the Feller condition does not hold. Another approach is given by the dicretization of partial differential problems.
+%When the jumps are not considered, namely for the Heston and the Heston-Hull-White models, disposable references are widely recalled in \cite{bcz, bcz-hhw}. In the standard Bates model, that is, presence of jumps but no randomness in the interest rate, the finite-difference methods for solving the $2$-dimensional PIDE associated with the option pricing problems can be based on implicit, explicit or alternating direction implicit schemes. The implicit scheme requires to solve a dense sparse system at each time step. Toivanen \cite{t} proposes a componentwise splitting method for pricing American options. The linear
+%complementarity problem (LCP) linked to the American option problem is
+%decomposed into a sequence of five  one-dimensional LCP's problems at
+%each time step. The advantage is that LCP's need the use of
+%tridiagonal matrices. Chiarella \textit{et al.} \cite{ckmz}
+%developed a method of lines algorithm for pricing and hedging American
+%options again under the standard Bates dynamics.
+%More recently Itkin \cite{it}  proposes a unified approach to handle PIDE's associated with L\'evy's models of interest in Finance, by solving the diffusion equation with standard finite-difference methods and by transforming the jump integral into a pseudo-differential operator. But to our knowledge, no deterministic numerical methods are available in the literature for the Bates-Hull-White model, that is, when the the interest rate is assumed to be stochastic.
+%
+%From the simulation point of view, the main problem consists in the treatment of the CIR dynamics for the volatility process. It is well known that the standard Euler-Maruyama discretization does not work in this framework. As far as we know, the most accurate simulation schemes for the CIR process have been introduced by Alfonsi \cite{al}. Other methods are available in the literature, see e.g. \cite{andersen}, but in this paper the Alfonsi technique is the one we compare with. In fact, in our numerical experiments we also apply a hybrid Monte Carlo technique: we couple the simulation of the approximating tree for the volatility and the interest rate components with a standard simulation of the underlying asset price, which uses Brownian increments and a straightforward treatment of the jumps. In the case of American option, this is associated with the Longstaff and Schwartz algorithm \cite{ls}, allowing to treat the dynamic programming principle.
+%
+%As already observed in \cite{bcz,bcz-hhw}, roughly speaking  our methods consist in the application of the most efficient method whenever this is possible: a recombining binomial tree for the volatility and the interest rate, a standard PIDE approach or a standard simulation technique in the direction of the asset price. The results of the numerical tests again support the accuracy of our hybrid methods and besides, we also justify the good behavior of the methods from the theoretical point of view.
+
+
+%Общие требования
+%
+%1. Номера формул указываются справа в круглых скобках.
+%
+%2. Рисунки и таблицы нумеруются. Заголовки рисунков и таблиц должны быть краткими, однако не содержать сокращений.
+%
+%3. Заголовок рисунка располагается под рисунком по центру, заголовок таблицы располагается над таблицей с правой стороны.
+%
+%4. Рисунки должны быть хорошего качества и представлены дополнительно отдельными файлами в формате *.eps или *.tif. (и для файлов, набранных в Latex, и для файлов, набранных в Word). Подрисуночные подписи не должны быть включены в рисунок.
+%
+%5. В тексте статьи ссылки на рисунки, таблицы должны быть оформлены, например, следующим образом:
+%... анимация движения двойного математического маятника  представлена на рис. 1 или (см. рис. 1)
+%... результаты расчетов представлены в табл. 1
+%Не желательно оформлять ссылки "... результаты расчетов представлены ниже", так как при верстке таблицы, рисунки могут быть смещены, например, в нижнюю часть страницы.  
+%
+%6. При наборе текста следует различать дефисы и тире (рекомендуется использовать короткое тире).
+%
+%В конце статьи необходимо указать информацию об авторах научной статьи:
+%
+%1. Ф.И.О. полностью;
+%2. Ученая степень, звание (если есть);
+%3. Должность (например, доцент кафедры информационных технологий)
+%4. Место работы;
+%5. E-mail;
+%6. Контактный телефон.
+
+% оформление рисунков
+%\begin{figure}[h!]
+%\begin{center}
+%\includegraphics[width=0.75\textwidth]{Ivanov_Petrov_pic_1.eps}\\
+%\emph{Рис. 1. }\end{center}
+%\end{figure}
+%
+%\begin{wrapfigure}{R}{5.0cm}
+%\begin{center}
+%\includegraphics[width=4.5cm, height=4.5cm]{Ivanov_Petrov_pic_1.eps}\\
+%\emph{Рис. 1.}\end{center}
+%\end{wrapfigure}
+%
+%% оформление перечней
+%\begin{itemize}
+%\setlength{\itemsep}{-1mm}
+%  \item
+%  \item
+%  \item
+%\end{itemize}
+
+\bigskip\centerline{\bf Литература}
+
+\begin{enumerate}
+	\item
+	\textsc{M. Briani, L. Caramellino, A. Zanette} A hybrid tree-finite difference approach for the Heston model. 2014.
+	\item
+	\textsc{E. Appolloni, L. Caramellino, A. Zanette} A robust tree method for pricing American options with CIR stochastic interest rate. 2013
+	\item
+	\textsc{L. Heston} A Closed-Form Solution for Options with Stochastic Volatility with Applications to Bond and Currency Options. Review of Financial Studies. 1993. v.~6. p.~327--343.
+	\item
+	\textsc{Kudryavtsev, O.E., and S.Z.~Levendorski\v{i}},  Fast and accurate pricing of barrier options under Levy processes, {\em Finance and Stochastics}, 2009, v. 13, n.4, p.531-562.
+	\item
+	\textsc{Кудрявцев, О.Е.} Вычисление цен барьерных и американских опционов в моделях Леви.-- {\em  Обозрение прикл. и промышл. матем.}, 2010, т.17, в.2, с.210-220.
+\end{enumerate}
+
+%1.	\emph{ Кириллов, В.~И.} Логика : учебник для юрид. вузов / В.~И.~Кириллов ; Моск. гос. юрид. академия. -- 6-е изд., перераб. и доп. -- Москва~: Проспект, 2009. -- 233~с.
+%
+%2.	\emph{ Грушевицкая, Т.~Г.} Культурология : учебник для вузов / Т.~Г.~Грушевицкая, А.~П.~ Садохин. -- 3-е изд., перераб. и доп. -- Москва~: ЮНИТИ-ДАНА, 2008. -- 687~с.
+%
+%3.	Философия : учебник / Н.~С.~Савкин [и др.] ; отв. ред. Н.~С.~Савкин. -- 3-е изд., испр. -- Саранск~: Морд. ун-т, 2004. -- 355~с.
+%
+%4.	\emph{ Казаков, Н.~А.} Запоздалое признание : повесть / Н.~А.~Казаков // На боевом посту. -- 2000. -- № 9. -- С.~64-76.
+%
+%5.	\emph{ Баталов, А.~Л.} Сакральная топография средневекового города / А.~Л.~Баталов, Л.~А.~Беляев // Известия Института христианской культуры средневековья. -- Москва, 1998. -- Т. 1. -- С.~13-22.
+%
+%6.	\emph{ Боголюбов, А.~Н.} О вещественных резонансах в волноводе с неоднородным заполнением / А.~Н.~ Боголюбов, А.~Л.~Делицын, М.~Д.~Малых // Вестник Московского университета. Сер. 3, Физика. Астрономия. -- 2001. -- № 5. -- С.~23-25.
+%
+%7.	Мониторинг состояния оборудования систем связи в трубопроводном транспорте нефти / Л.~И.~ Григорьев [и др.] // Автоматизация, телемеханизация и связь в нефтяной промышленности. -- 2007. -- № 5. -- С.~3-8.
+%
+%8.	\emph{ Моисеева, М.~В.} Японская мультипликация и ее восприятие в России / М.~В.~Моисеева, Е.~В.~ Кудряшева // Социокультурная миссия университета в современном обществе~: сб. тр. участников I Всерос. научно-практической конф. "Человек, культура, образование" (Ульяновск, 2-4 июля 2005 г.). -- Ульяновск, 2006. -- С.~142-145.
+%
+%9.	Приемопередающее устройство~: пат. 2187888 Российская Федерация~: МПК H 04 В 1/38, Н 04 J 13/00 / Чугаева~В.~И.~; заявитель и патентообладатель Воронеж. науч.-ислед. ин-т связи. -- № 2000131736/09~; заявл. 18.12.00~; опубл. 20.08.02, Бюл. № 23 (II ч.). -- 3~с.
+%
+%10.	Пат. 2187888 Российская Федерация, МПК7 H 04 В 1/38, Н 04 J 13/00. Приемопередающее устройство / Чугаева~В.~И.~; заявитель и патентообладатель Воронеж. науч.-ислед. ин-т связи. -- № 2000131736/09~; заявл. 18.12.00~; опубл. 20.08.02, Бюл. № 23 (II ч.). -- 3~с.
+%
+%11.	Стекло безопасное для наземного транспорта. Общие технические условия [Текст]~: ГОСТ 5727-88. - Изд. сент. 2001 с Изм. 1, 2, 3 (ИУС. 1992. № 2; ИУС. 1999. № 1; ИУС. 2001. № 11). -- Взамен ГОСТ 5727-83~; введ. 01.01.90.
+%
+%12.	ГОСТ Р 517721-2001. Аппаратура радиоэлектронная бытовая. Входные и выходные параметры и типы соединений. Технические требования [Текст]. -- Введ. 2002-01-01. -- Москва~: Изд-во стандартов, 2001. -- IV, 27~с.~: ил.~; 29~см.
+%
+%13.	\emph{ Сидыганов, В.~У.} Модель Москвы~: электрон, карта Москвы и Подмосковья / В.~У.~Сидыганов, С.~Ю.~ Толмачев, Ю.~Э.~Цыганков. -- Версия 2.0. -- Электрон, дан. и прогр. -- Москва~: FORMOZA, 1998. -- 1 электрон. опт. диск (CD-ROM).
+%
+%14.	Атлас-98~: 3D., 1998. -- 1 электрон. опт. диск (CD-ROM).
+%
+%15.	Исследовано в России~: многопредмет. науч. журн. / Моск. физ.-техн. ин-т. -- Электрон. журн. -- Режим доступа: http://zhumal.mipt. rssi.ru
+%
+%16.	Электронный каталог ГПНТБ России~: база данных. -- Режим доступа: 
+%
+%http://www.gpntb.ru/win/search/help/el-cat.html
+
+\end{document}
+
