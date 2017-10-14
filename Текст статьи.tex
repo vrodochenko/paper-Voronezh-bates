@@ -27,14 +27,14 @@
 
 Со времен фундаментальных работ Е.Б.Дынкина, Р.Фейнмана и М.Каца известно, что решение уравнения диффузии в определенной области может быть интерпретировано как математическое ожидание выхода из нее винеровского процесса. В дальнейших исследованиях эта взаимосвязь была распространена на более общие процессы - в частности,  негауссовы процессы Леви, траектории которых могут быть разрывными. 
 
-С точки зрения финансовой математики, вычисление такого рода функционалов связано с решением одной из важных прикладных задач вычислением цен производных финансовых инструментов, в частности - опционов.
+Вычисление подобного рода функционалов является нетривиальной задачей и связано с  решением достаточно сложных интегро-дифференциальных уравнений с частными производными, известных как прямое и обратное уравнение Колмогорова. С точки же зрения финансовой математики, разработка инструментов для решения этих уравнений позволяет решать одну из важных прикладных задач - задачу вычисления цен производных финансовых инструментов, в частности - опционов.
 Рынок фьючерсных и опционных контрактов, называемый "срочным рынком" является одной из важнейших составляющих финансового рынка, поскольку его оборот может в десятки и более раз превышать объем торгов на рынке базовых активов. Причиной этого является тот факт, что производные финансовые инструменты предоставляют возможность управления финансовыми рисками.
 
 В этой работе мы будем иметь дело с системой стохастических дифференциальных уравнений, называемой "моделью Бейтса", описанной в работе [Bates], следующего вида: \\
 
 \begin{equation}
 \begin{array}{l}
-d\ln S_t = (r-\frac{V_t}{2})dt+\sqrt{V_t} dZ^S(t)+dJ_t,
+d\ln S_t = (r-\frac{V_t}{2})dt+\sqrt{V_t} dZ^S_t+dJ_t,
 \smallskip\\
 dV_t= \kappa_V(\theta-V_t)dt+\sigma\sqrt{V_t}dZ^V_t,
 \smallskip\\
@@ -54,7 +54,7 @@ dV_t= \kappa_V(\theta-V_t)dt+\sigma\sqrt{V_t}dZ^V_t,
 
 $$G(S)=max{0, K - S}$$
 
-Рассмотрим, для определённости, опцион <<put>>. Вычисление его цены в описанной модели сводится к вычислению следующего функционала: 
+Вычисление риск-нейтральной цены барьерного опциона в описанной модели сводится к вычислению функционала: 
 
 \begin{equation}
 \begin{array}{l}
@@ -65,13 +65,212 @@ F(S,V,t) = M[e^{-r(T-t)}  \mathcal{1} \underline{S_T>H} G_T(S)  S_0 = S, V_0 = V
 \end{array}
 \end{equation}
 
-В случае опциона европейского стиля, где не рассматривается поглощающий барьер, методы, связанные с применением преобразования Фурье могут позволять получать явные формулы для модели Бейтса [Антонино, ссылка]. Для барьерных опционов явные формулы получить не удаётся.
+Если бы $V(t)$ была постоянной, динамика цены акции описывалась бы экспоненциальным процессом Леви. В этом случае, искомая цена опциона $F(S_t,t)$ являлась бы решением интегро-дифференциального уравнения с частными производными, известного в теории вероятности как обратное уравнение Колмогорова,
 
-Основными методами вычисления таких функционалов являются методы Монте-Карло и конечно-разностные схемы. Обзор такого рода методов можно найти в статьях [Antonino, Chiarella] и монографии [Кудрявцев].  
-%In the case of plain vanilla European options, Fourier inversion methods \cite{CM} lead to closed-form formulas to compute the price under the Bates model. Nevertheless, in the American case the numerical literature is limited. Typically, numerical  methods are based on the use of the dynamic programming principle to which one applies either deterministic schemes  from numerical analysis and/or from tree methods or Monte Carlo techniques.
-%
-%The option pricing hybrid tree/finite-difference approach %for pricing European and American
-%we deal with,  derives from applying an efficient recombining binomial tree method in the direction of the volatility and the interest rate components, whereas the asset price component is locally treated by means of a one-dimensional partial integro-differential equation (PIDE), to which a finite-difference scheme is applied. Here, the numerical treatment of the nonlocal term coming from the jumps involves implicit-explicit techniques, as well as numerical quadratures. In comparison to what developed in \cite{bcz,bcz-hhw}, the novelty of this paper is in part related to the application to  the Bates-Hull-White process but it mainly consists in the theoretical study of the stability of the resulting numerical scheme for the computation of both European and American options. And we stress that we never require the validity of the Feller condition for the Cox-Ingersol-Ross (CIR) dynamics \cite{cir} of the volatility process.
+\begin{equation}
+\begin{array}{l}
+\frac{\partial
+		F}{\partial t}(S,t)+rS\frac{\partial F}{\partial S}(S,t)
+	+\frac{\sigma^2S^2}{2}\frac{\partial^2 F}{\partial^2
+		S}(S,t)-rF(S,t)+
+	\smallskip\\
+	+\int_R(F(Se^y,t)-F(S,t)-S(e^y-1)\frac{\partial F}{\partial
+		S}(S,t))\Pi(dy)=0.
+\end{array}
+\end{equation}
+
+Пусть $\tau = T-t$, тогда $F(S,V,\tau)$ удовлетворяет следующему [см, например, статья 17 Фенг]) интегро-дифференциальному уравнению в частных производных с переменными коэффициентами.
+
+%Логарифм J - это величина скачков в логарифмической шкале (для которой имеются стандартные формулы для характеристических экспонент). В модели Бейтса logJ имеет нормальное распределение с параметрами mu_J и sigma_J.
+
+\begin{equation}
+	\begin{array}{l}
+		\frac{\partial F(S,V,\tau)}{\partial \tau} = 
+		\frac{1}{2} VS^2 \frac{\partial^2 F(S,V,\tau)}{\partial S^2} +
+		\rho_m \sigma VS \frac{\partial^2 F(S,V,\tau)}{\partial S \partial V} +
+		\smallskip\\
+		\frac{1}{2} \sigma^2 V \frac{\partial^2 F(S,V,\tau)}{\partial V^2} +
+		(r - q - \lambda (e^{\mu + \frac{1}{2}\sigma^2}-1)) \frac{1}{2} S \frac{\partial F(S,V,\tau)}{\partial S} +
+		\kappa(\theta - V) \frac{\partial2 F(S,V,\tau)}{\partial V} - 
+		\smallskip\\
+		(r-\lambda)F(S,V,\tau) +
+		\lambda \int_0^\infty F(JS,V,\tau) f(J) dJ, S(\tau) > H
+		\smallskip\\
+		F(S,V,\tau) = 0,  S(\tau) \le H
+	\end{array}
+\end{equation}
+
+где $f(J)$ - логнормальная функция плотности вероятности,
+
+
+В случае опциона европейского стиля, где не рассматривается поглощающий барьер, методы, связанные с применением преобразования Фурье могут позволять получать явные формулы для модели Бейтса [Антонино, Бейтс ссылка]. Для барьерных опционов явные формулы получить не удаётся.
+
+Такие уравнения сложны для решения и требуют значительных вычислительных ресурсов в случае численного решения.
+
+Основными методами вычисления таких функционалов являются методы Монте-Карло и конечно-разностные схемы. Обзор такого рода методов можно найти в статьях [Antonino, Chiarella] и монографии [Кудрявцев], а также в [Carr, P., Geman, H., Madan, D.B., Yor, M.: The fine structure of asset returns: an empirical investigation.
+J. Bus. 75, 305–332 (2002)]
+
+В статьях [Иткин $(https://www.researchgate.net/profile/Andrey_Itkin/publications)$] можно найти быстрые конечно-разностные схемы для вычисления цен таких опционов.
+
+
+\section{Замена процесса}
+
+Эффект корреляции винеровских процессов необходимо учесть при построении процедуры оценки. Методика, которой мы воспользуемся, аналогична применяемой в [Антонино, Хестон]. Мы посроим подходящую замену для процессов, чтобы го учесть. Обозначим $\hat{\rho} = \sqrt{1-\rho^2}$, $W = Z^V$ $\rho W + \hat{\rho}Z = Z^S$, где $W_t$ $Z_t$ - независимые броуновские движения. В этих терминах мы получаем возможноть переписать систему (1).
+
+Введём также замену для процесса цены базового актива, полагая $Y_t = ln(\frac{S_t}{H}) - \frac{\rho}{sigma}V_t$. Такой вид замены одновременно констатирует переход к логарифмической шкале и производит нормировку по отношению к барьеру, что является удобным с вычислительной точки зрения.
+
+После введения обеих замен, система (1) примет вид:
+
+\begin{equation}
+\begin{array}{l}
+d Y_t = (r-\frac{1}{2}V_t - /frac{\rho}{\sigma}\kappa(\theta - V_t))dt+\hat{\rho}\sqrt{V_t} dZ^S_t+dJ_t,
+\smallskip\\
+dV_t= \kappa_V(\theta-V_t)dt+\sigma\sqrt{V_t}dZ^V_t,
+\smallskip\\
+\end{array}
+\end{equation}
+
+
+Положим $\mu_Y(V_t) = r - \frac{1}{2}V_t - \frac{\rho}{\sigma}\kappa(\theta - V_t)$ и $\mu_V(V_t) = \kappa(\theta - V_t)$. Тогда:
+
+
+\begin{equation}
+\begin{array}{l}
+dY_t = \mu_Y(V_t)dt + \hat{\rho}\sqrt{V_t}dZ_t
+\smallskip\\
+dV_t = \mu_V(V_t)dt + \sigma \sqrt{V_t}dW_t,
+\end{array}
+\end{equation}
+
+
+
+
+\section{Метод линий}
+Для того, чтобы иметь возможность свести рассматриваемую задачу к задаче на малых интервалах времени, мы используем процедуру, известную как "рандомизация Карра", впервые введённую в статье [Карр, рандомизация] и обобщённую на общий случай задач стохастического управления в статьк [Карр, обобщение]. Пусть $F_{n}({Y}_{t_n}, {V}_{t_n})$ - приближение Карра цены опциона в момент времени $t_n$; $\Delta \tau = \frac{T}{N}$, $t_i = i \Delta \tau$, $\{\tau_i\}_{i=1}^N$ – независимые экспоненциально распределённые случайные величины со средним $\Delta \tau$. Обозначим $t_{n,\tau} = {t_n+\tau_n}$, $Z_t^n=Y_{t_{n,\tau}}+\frac{\rho}{\sigma}V_{t_{n,\tau}}$.
+
+Полагая $F_{N}=g(Y_T)$, где $g$ - функция выплат в логарифмической шкале, получаем возможность записать:
+
+$$
+F_{n}({Y}_{t_n}, {V}_{t_n}) = M_{t_{n}} [ e^{-r\Delta \tau}  
+I_{\underline{Z^n_{\tau_n}} > 0} F_{n+1}(Y_{t_n+\tau_n},V_{t_n+\tau_n})], \smallskip\\ n = N-1,..,0 
+$$
+
+\section{Аппроксимация}
+
+Для того, чтобы свести указанную задачу к семейству задач, связанных с процессами Леви, мы построим, следуя [Антонино, деревья], аппроксимацию процесса CIR при помощи марковской цепи. К достоинствам используемого метода можно отнести быструю сходимость к оригинальному процессу и способность сохранять адекватность в широком диапазоне изменения параметров. В частности, условие Феллера $2\kappa\theta>\sigma^2r$ не является существенным для корректности работы процедуры.
+
+
+Разделим промежуток $[0, T]$ на N частей, $\Delta t = \frac{T}{N}$. Зафиксируем точки $t_n = n \cdot \Delta T$ 
+
+Построим биномиальное дерево со склеенными вершинами по схеме:
+\begin{equation}	
+V(n,k) = (\sqrt{V_0} + \frac{\sigma}{2}(2k-n)\sqrt{\Delta t})^2 \mathds{1}_{(\sqrt{V_0} + \frac{\sigma}{2}(2k-n)\sqrt{\Delta t}) > 0}, 
+\\ n = 0,1,...,N, \; k = 0,1,...,n.
+\end{equation}
+
+Из вершины с $(n,k)$ мы попадём либо "вверх" - в вершину $(n+1,k_u)$, либо "вниз - вершину $(n+1,k_d)$, при этом $k_u$ и $k_d$ подбираются так, чтобы согласовать движение по дереву со сносом $\mu(V_{(n,k)})$, по следующим правилам:
+$$k_u^{\Delta t}(n,k) = min\{{k^\ast} : k + 1 \le k^\ast \le n + 1, \\ V(n,k) + \mu_{V}(V(n,k)){\Delta t} \le V(n+1,k^\ast)\}$$
+$$k_d^{\Delta t}(n,k) = max\{{k^\ast} : 0 \le k^\ast \le k, \\ V(n,k) + \mu_{V}(V(n,k)) \ge V(n+1,k^\ast)\}$$,
+
+Возможные случаи движения показаны на рис. 1. По оси абсцисс отложены значения $t_n$, точками обозначены различные $V(n,k)$.
+
+
+% оформление рисунков
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=0.75\textwidth]{lattice.eps}\\
+\emph{Рис. 1. }\end{center}
+\end{figure}
+
+%\begin{wrapfigure}{R}{5.0cm}
+%\begin{center}
+%\includegraphics[width=4.5cm, height=4.5cm]{Ivanov_Petrov_pic_1.eps}\\
+%\emph{Рис. 1.}\end{center}
+%\end{wrapfigure}
+
+
+%% оформление перечней
+%\begin{itemize}
+%\setlength{\itemsep}{-1mm}
+%  \item
+%  \item
+%  \item
+%\end{itemize}
+Марковская цепь, вершинами которой являются вершины этого дерева, будет иметь следующие вероятности переходов:
+
+$$
+		p^{\Delta t}_{k^{\Delta t}_{u}(n,k)} = 
+		\frac{\mu_{V}(V(n,k))\Delta t+V(n,k)-V(n+1,k^{\Delta t}_{d}(n,k))}{V(n+1,k^{\Delta t}_{u}(n,k))-V(n+1,k^{\Delta t}_{d}(n,k))}
+$$
+И, кроме того,
+\begin{equation}
+		p^{\Delta t}_{k^{\Delta t}_{u}(n,k)} :=
+		\begin{cases}
+		1, & p^{\Delta t}_{k^{\Delta t}_{u}(n,k)} > 1\\
+		p^{\Delta t}_{k^{\Delta t}_{u}(n,k)}, & p^{\Delta t}_{k^{\Delta t}_{u}(n,k)} \in [0, 1]\\
+		0, & p^{\Delta t}_{k^{\Delta t}_{u}(n,k)} < 0
+		\end{cases}
+		, \;\;\;\; p^{\Delta t}_{k^{\Delta t}_{d}(n,k)} := 1 - p^{\Delta t}_{k^{\Delta t}_{u}(n,k)},
+\end{equation}
+
+\section{Приближённая факторизация}
+
+Зафиксировав таким образом вариацию в каждом из узлов, мы имеем возможность рассматривать задачу (Леви, задача) с интегро-дифференциальным оператором следующего вида:
+
+$$L_{n,k}f(y) := L_{Y}^{V(n,k)}f(y) = \frac{1}{2\pi}\int^\infty_{-\infty}e^{iy\xi}\psi_{n,k}\hat{f}(\xi)d\xi$$
+
+Заметим, что процесс $Y_t$ при $V_t = V(n,k)$ имеет характеристическую экспоненту:
+
+\begin{equation}
+	\psi(\xi) = \frac{\sigma^2_{(n,k)}}{2}\xi^2 - i\gamma_(n,k)\xi + \lambda(1-e^{ -\frac{\delta^2 \xi^2}{2} + i\mu\xi}),
+\end{equation}
+где  $\sigma_{(n,k)} = \hat{\rho}\sqrt{V(n,k)}$, а $\gamma_(n,k) = \mu_Y + \lambda(1-e^{\frac{\delta^2}{2} + \mu})$
+
+Решение каждой задачи может быть теперь записано в терминах операторов $\varepsilon^{+}_{q}$ и $\varepsilon^{-}_{q}$ - факторов Винера-Хопфа:
+
+\begin{eqnarray}\label{whpf}
+f_{n}^{k_{d}}(y) = (q{\Delta t})^{-1} \; \varepsilon^{-}_{q} \mathds{1}_{(- \frac{\rho}{\sigma}V(n,k), +\infty)}(y) \; \varepsilon^{+}_{q} f_{n+1}^{k_d}(y);\\
+f_{n}^{k_{u}}(y) = (q{\Delta t})^{-1} \; \varepsilon^{-}_{q} \mathds{1}_{(- \frac{\rho}{\sigma}V(n,k), +\infty)}(y) \; \varepsilon^{+}_{q} f_{n+1}^{k_u}(y),
+\end{eqnarray}
+
+В отличие от более простого случая модели Хестона, наличие скачков здесь лишает возможности использовать известные явные формулы для факторов - их получить не удаётся. Получение приближённых формул для этих объектов является трудной задачей, последние успехи в которой, из [Мекс, 2016], позволяют обобщение на случай семейства моделей с различным образом распределёнными скачками.
+
+Вид приближённых формул следующий:
+
+\begin{eqnarray}\label{whpe1}
+\phi^+_q(\xi)&=&\exp\left[(2\pi i)^{-1}
+\int_{-\infty+i\omega_-}^{+\infty+i\omega_-}\frac{\xi\ln(q+\psi(\eta))}
+{\eta(\xi-\eta)}d\eta\right];\\\label{whme1}
+\phi^-_q(\xi)&=&\exp\left[-(2\pi i)^{-1}
+\int_{-\infty+i\omega_+}^{+\infty+i\omega_+}\frac{\xi\ln(q+\psi(\eta))}
+{\eta(\xi-\eta)}d\eta\right],
+\end{eqnarray}
+
+Константы $\omega_+$ и $\omega_-$, такие, что $\omega_-<0<\omega_+$, имеют здесь смысл параметров и подбираются так, чтобы сохранить сходимость соответствующих интегралов и зависят от параметров процесса Леви. Подробнее о выборе констант - см. статью [Кудрявцев, Мекс]. В этой же статье приведена теорема, согласно которой эти формулы допускают удобное для численной реализации представление. А именно, $\phi^+_q(\xi)$ допускает аналитическое продолжение в полуплоскость $\Im \xi>\omega_-$ и может быть представлена как:
+\begin{eqnarray}\label{whpn1}
+\phi^+_q(\xi)&=&\exp\left[i\xi F^+(0)-\xi^2\hat{F}^+(\xi)\right],\\\label{whpn2} 
+F^+(x)&=&\bf{1}_{(-\infty,0]}(x)(2\pi)^{-1}
+\int_{-\infty+i\omega_-}^{+\infty+i\omega_-}e^{ix\eta}\frac{\ln(q+\psi(\eta))}
+{\eta^2}d\eta;
+\\
+\label{whpn3} \hat{F}^+(\xi)&=&\int_{-\infty}^{+\infty}e^{-ix\xi}F^+(x)dx.
+\end{eqnarray}
+
+Аналогично, $\phi^-_q(\xi)$ допускает аналитическое продолжение в полуплоскость $\Im \xi<\omega_+$ и может быть представлена как:
+\begin{eqnarray}\label{whmn1}
+\phi^-_q(\xi)&=&\exp\left[-i\xi F^-(0)-\xi^2\hat{F}^-(\xi)\right],\\
+F^-(x)&=&\bf{1}_{[0,+\infty)}(x)(2\pi)^{-1}
+\int_{-\infty+i\omega_+}^{+\infty+i\omega_+}e^{ix\eta}\frac{\ln(q+\psi(\eta))}
+{\eta^2}d\eta;\\
+\label{whmn3} \hat{F}^-(\xi)&=&\int_{-\infty}^{+\infty}e^{-ix\xi}F^-(x)dx.
+\end{eqnarray}
+
+Для расчёта этих формул
+
+\section{Выводы}
+Получен быстрый и точный метод приближённого решения интегро-дифференциального уравнения с переменными коэффициентами, сохраняющий работоспособность в широком диапазоне изменения параметров.
+Получен быстрый и точный метод вычисления стоимости барьерного опциона в модели Бейтса, позволяющий обобщение на семейство моделей, основанных на широком классе процессов Леви с различным образом распределёнными скачками. Численные эксперименты показывают, что результаты применяемого метода соответствуют результатам, которые можно получить с использованием метода Монте-Карло и отражают особенности поведения функции-решения вблизи поглощающего барьера. Другим преимуществом является тот факт, что использования разработанного метода позволяет за один проход получить результат для набора начальных значений $S_0$, что значительно ускоряет процедуры, в которых вычисление цены требуется проводить более чем в одной точке, при условии, что остальные параметры остаются неизменными.
+
 %
 %The existing literature on numerical schemes for the option pricing problem in this framework is quite poor. Tree methods are available only for the Heston model, see \cite{VN},  but they are not really efficient when the Feller condition does not hold. Another approach is given by the dicretization of partial differential problems.
 %When the jumps are not considered, namely for the Heston and the Heston-Hull-White models, disposable references are widely recalled in \cite{bcz, bcz-hhw}. In the standard Bates model, that is, presence of jumps but no randomness in the interest rate, the finite-difference methods for solving the $2$-dimensional PIDE associated with the option pricing problems can be based on implicit, explicit or alternating direction implicit schemes. The implicit scheme requires to solve a dense sparse system at each time step. Toivanen \cite{t} proposes a componentwise splitting method for pricing American options. The linear
@@ -105,14 +304,6 @@ F(S,V,t) = M[e^{-r(T-t)}  \mathcal{1} \underline{S_T>H} G_T(S)  S_0 = S, V_0 = V
 %
 %6. При наборе текста следует различать дефисы и тире (рекомендуется использовать короткое тире).
 %
-%В конце статьи необходимо указать информацию об авторах научной статьи:
-%
-%1. Ф.И.О. полностью;
-%2. Ученая степень, звание (если есть);
-%3. Должность (например, доцент кафедры информационных технологий)
-%4. Место работы;
-%5. E-mail;
-%6. Контактный телефон.
 
 % оформление рисунков
 %\begin{figure}[h!]
@@ -148,6 +339,43 @@ F(S,V,t) = M[e^{-r(T-t)}  \mathcal{1} \underline{S_T>H} G_T(S)  S_0 = S, V_0 = V
 	\textsc{Kudryavtsev, O.E., and S.Z.~Levendorski\v{i}},  Fast and accurate pricing of barrier options under Levy processes, {\em Finance and Stochastics}, 2009, v. 13, n.4, p.531-562.
 	\item
 	\textsc{Кудрявцев, О.Е.} Вычисление цен барьерных и американских опционов в моделях Леви.-- {\em  Обозрение прикл. и промышл. матем.}, 2010, т.17, в.2, с.210-220.
+	\item
+	A. Alfonsi, High order discretization schemes for the CIR process: application
+	to affine term structure and Heston models, Mathematics of Computation, 79
+	(2010), 209 - 237. https://doi.org/10.1090/s0025-5718-09-02252-2
+	\item
+	E. Appolloni, L. Caramellino, A. Zanette, A robust tree method for pricing
+	American options with CIR stochastic interest rate, 2013.
+	\item
+	B. Bouchard, N. El Karoui, N. Touzi, Maturity randomization for stochastic
+	control problems, Ann. Appl. Probab., 15 (2005), no. 4, 2575 – 2605.
+	https://doi.org/10.1214/105051605000000593
+	\item
+	D.M. Briani, L. Caramellino, A. Zanette, A hybrid tree-finite difference
+	approach for the Heston model, 2014.
+	\item
+	P. Carr, Randomization and the American put, Review of Financial Studies,
+	11 (1998), 597 - 626. https://doi.org/10.1093/rfs/11.3.597
+	\item
+	C. Chiarella, B. Kang, G. H. Meyer, The Evaluation of Barrier Option Prices
+	Under Stochastic Volatility, Computers \& Mathematics with Applications, 64
+	(2010), 2034 - 2048. https://doi.org/10.1016/j.camwa.2012.03.103
+	\item
+	L. Heston, A Closed-Form Solution for Options with Stochastic Volatility with
+	Applications to Bond and Currency Options, Review of Financial Studies, 6
+	(1993), 327 - 343. https://doi.org/10.1093/rfs/6.2.327
+	\item
+	O. Kudryavtsev, S. Levendorski?, Fast and accurate pricing of barrier options
+	under L?vy processes, Finance and Stochastics, 13 (2009), no. 4, 531 - 562.
+	https://doi.org/10.1007/s00780-009-0103-2
+	\item
+	O. Ye. Kudryavtsev, An efficient numerical method to solve a special cass of
+	integro-differential equations relating to the Levy models, Mathematical
+	Models and Computer Simulations, 3 (2011), no. 6, 706–711.
+	https://doi.org/10.1134/s2070048211060068
+	\item
+	PREMIA: An Option Pricer Project CERMICS-INRIA, available at
+	http://www.premia.fr
 \end{enumerate}
 
 %1.	\emph{ Кириллов, В.~И.} Логика : учебник для юрид. вузов / В.~И.~Кириллов ; Моск. гос. юрид. академия. -- 6-е изд., перераб. и доп. -- Москва~: Проспект, 2009. -- 233~с.
@@ -183,6 +411,29 @@ F(S,V,t) = M[e^{-r(T-t)}  \mathcal{1} \underline{S_T>H} G_T(S)  S_0 = S, V_0 = V
 %16.	Электронный каталог ГПНТБ России~: база данных. -- Режим доступа: 
 %
 %http://www.gpntb.ru/win/search/help/el-cat.html
+\section{Об авторах}
+%В конце статьи необходимо указать информацию об авторах научной статьи:
+
+%1. Ф.И.О. полностью;
+%2. Ученая степень, звание (если есть);
+%3. Должность (например, доцент кафедры информационных технологий)
+%4. Место работы;
+%5. E-mail;
+%6. Контактный телефон.
+1. Кудрявцев Олег Евгеньевич;
+2. Доктор физико-математических наук, профессор;
+3. Должность (например, Заведующий кафедры информационных таможенных технологий);
+4. Ростовский филиал Российской Таможенной Академии;
+5. *********@mail.ru;
+6. +7(903)-999-99-99
+
+1. Родоченко Василий Владимирович;
+2. нет;
+3. аспирант;
+4. Южный Федеральный Университет;
+5. ********************@gmail.com;
+6. +7(904)-999-99-99
+
 
 \end{document}
 
