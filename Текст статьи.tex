@@ -178,9 +178,7 @@ f_{n}^{k_{u}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} \mathds{1}_{(- \
 \end{eqnarray*}
 
 Далее последовательно вычисляя $f_n^k = p_{k_d^{\Delta \tau}(n,k)} f_n^{k_d}(y) + p_{k_u^{\Delta \tau}(n,k)} f_n^{k_u}(y)$ для $n=N-1,..,0, k = 0,...,n,$
-где $f_n^k = F(He^{y+\frac{\rho}{\sigma_V}V(n,k)}, V(n,k), n\Delta \tau)$, мы, после возвращения к исходным обозначениям, получаем приближённые значения искомого функционала (2). В отличие от более простого случая модели Хестона [21], наличие скачков лишает возможности использовать явные формулы для факторов -- их получить не удаётся. Получение приближённых формул для этих объектов является трудной задачей, последние успехи в которой (см. [18]) позволяют обобщение на случай семейства моделей с различным образом распределёнными скачками.
-
-Приближённые формулы имеют вид:
+где $f_n^k = F(He^{y+\frac{\rho}{\sigma_V}V(n,k)}, V(n,k), n\Delta \tau)$, мы, после возвращения к исходным обозначениям, получаем приближённые значения искомого функционала (2). В отличие от более простого случая модели Хестона [21], наличие скачков лишает возможности использовать явные формулы для факторов -- их получить не удаётся. Аналитические формулы для факторов имеют вид:
 
 \begin{eqnarray*}
 	\phi^+_q(\xi)&=&\exp\left[(2\pi i)^{-1}
@@ -191,7 +189,7 @@ f_{n}^{k_{u}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} \mathds{1}_{(- \
 	{\eta(\xi-\eta)}d\eta\right],
 \end{eqnarray*}
 
-Константы $\omega_+$ и $\omega_-$, такие, что $\omega_-<0<\omega_+$, имеют здесь смысл параметров и подбираются так, чтобы сохранить сходимость соответствующих интегралов и зависят от параметров процесса Леви. Вопросы выбора констант подробнее освещается в статье [18]. Свойства этих функций позволяют получить удобное для численной реализации представление. Функция $\phi^+_q(\xi)$ допускает аналитическое продолжение в полуплоскость $\Im \xi>\omega_-$ и может быть представлена как:
+Константы $\omega_+$ и $\omega_-$, такие, что $\omega_-<0<\omega_+$, имеют здесь смысл параметров и подбираются так, чтобы сохранить сходимость соответствующих интегралов и зависят от параметров процесса Леви.  В работе [18] получено универсальное и удобное для численной реализации представление факторов Винера-Хопфа. Функция $\phi^+_q(\xi)$ допускает аналитическое продолжение в полуплоскость $\Im \xi>\omega_-$ и может быть представлена как:
 \begin{eqnarray*}
 	\phi^+_q(\xi)&=&\exp\left[i\xi F^+(0)-\xi^2\hat{F}^+(\xi)\right],\\ 
 	F^+(x)&=&\mathds{1}_{(-\infty,0]}(x)(2\pi)^{-1}
@@ -223,7 +221,6 @@ f_{n}^{k_{u}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} \mathds{1}_{(- \
 
 \bigskip\centerline{\bf Литература}
 
-
 1. \emph{Cox, J. C.} A Theory of the Term Structure of Interest Rates / J.~C.~Cox, J.~E.~Ingersoll, S.~A.~Ross // Econometrica. -- 1985. -- Vol. 53. -- P.~385-408.
 
 2. \emph{Bates, D. S.} Jumps and Stochastic Volatility: Exchange Rate Processes Implicit in Deutshe Mark Options / D.~S.~Bates // Review of Financial Studies. -- 1996. -- Vol. 9. -- P.~69–107.
@@ -244,15 +241,15 @@ f_{n}^{k_{u}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} \mathds{1}_{(- \
 
 10. \emph{Briani, D.M.} A hybrid approach for the implementation of the Heston model / {D.~M.~Briani, L.~Caramellino, A.~Zanette} // IMA Journal of Management Mathematics. -- 2017. --V. 28. -- № 4. -- P.~467-500.
 
-11. \emph{Itkin, A.} Pricing Derivatives Under Levy Models: book / A.~Itkin -- Birkh?user. 2017. -- 308 p.
+11. \emph{Itkin, A.} Pricing Derivatives Under Levy Models: book / A.~Itkin -- Birkhauser. 2017. -- 308 p.
 
 12. \emph{Chourdakis, K.} Levy processes driven by stochastic volatility / K.Chourdakis // Asia-Pacific Finan. Markets. -- 2005. - № 12. -- P.~333-352.
 
 13. \emph{Apolloni, E.} A robust tree method for pricing American options with CIR stochastic interest rate / {E.~Appolloni, L.~Caramellino, A.~Zanette} // IMA Journal of Management Mathematics. -- 2015. --V. 26. -- № 4. -- P.~377-401.
 
-14. \emph{Kudryavtsev, O.} Fast and accurate pricing of barrier options under L\'evy processes / O. Kudryavtsev, S. Levendorski\v{i} //  Finance and Stochastics. -– 2009. -- Vol. -– № 4. -– P.~531--562.
+14. \emph{Kudryavtsev, O.} Fast and accurate pricing of barrier options under L\'evy processes / O. Kudryavtsev, S. Levendorski\v{i} //  Finance and Stochastics. -- 2009. -- Vol. -- № 4. -- P.~531--562.
 
-15. \textsc{Кудрявцев, О.Е.} Вычисление цен барьерных и американских опционов в моделях Леви.-- {\em  Обозрение прикл. и промышл. матем.}. 2010. т.17, в.2, с.210-220.
+15. \emph{Кудрявцев, О.Е.} Вычисление цен барьерных и американских опционов в моделях Леви. / О.Е.~Кудрявцев // Обозрение прикл. и промышл. матем. -- 2010. --Т.17. --№.2. С.~210--220.
 
 16. \emph{Kudryavtsev, O. Ye.} An efficient numerical method to solve a special cass of integro-differential equations relating to the Levy models / O.~Ye.~Kudryavtsev // Mathematical Models and Computer Simulations, -- 2011. --V. 3. -- № 6. -- P.~706-711.
 
@@ -265,43 +262,6 @@ f_{n}^{k_{u}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} \mathds{1}_{(- \
 20. \emph{Bouchard, B.} Maturity randomization for stochastic control problems / {B.~Bouchard, N.~El~Karoui, N.~Touzi} // Annals of Applied Probability. -- 2005. --V. 15. -- № 4. -- P.~2575-2605. 
 
 21. \emph{Kudryavtsev, O.} A Wiener-Hopf factorization approach for pricing barrier options in the Heston model / Kudryavtsev~O., Rodochenko~V. // Applied Mathematical Sciences. -- 2017. -- V.~11. -- №~2. -- P.~93--100.\begin{center}
-	1. \emph{Cox, J. C.} A Theory of the Term Structure of Interest Rates / J.~C.~Cox, J.~E.~Ingersoll, S.~A.~Ross // Econometrica. -- 1985. -- Vol. 53. -- P.~385-408.
-
-2. \emph{Bates, D. S.} Jumps and Stochastic Volatility: Exchange Rate Processes Implicit in Deutshe Mark Options / D.~S.~Bates // Review of Financial Studies. -- 1996. -- Vol. 9. -- P.~69–107.
-
-3. \emph{L. Heston} A Closed-Form Solution for Options with Stochastic Volatility with Applications to Bond and Currency Options. Review of Financial Studies. 1993. -- Vol. 6. -- P.~327-343.
-
-4. \emph{Cont, R.} Financial modelling with jump processes: monograph / R.~Cont, P.~Tankov. -- Chapman \& Hall/CRC Press. 2004. -- 535 p.
-
-5. \emph{Merton, R.} Option pricing when underlying stock returns are discontinuous / R.~Merton // J. Financ. Econ. -- 1976. -- Vol. 3. -- P. 125–144.
-
-6. \emph{Black, F.} The Pricing of Options and Corporate Liabilities / F. Black, M. Scholes // Journal of Political Economy. -- 1973. -- Vol. 81. -- № 3. -- P. 637-654.
-
-7. \emph{Kudryavtsev, O.} Advantages of the Laplace transform approach in pricing first touch digital options in L\'evy-driven models / O. Kudryavtsev // J. Boletin de la Sociedad Matematica Mexicana. -- 2016. -- V.~22. -- №~2. -- P.~711--731.
-
-8. \emph{Feng, Y. Q.} CVA under Bates Model with Stochastic Default Intensity /Y.~Q.~Feng //  Journal of Mathematical Finance. -- 2017. -- №7. -- P.~682-698.
-
-9. \emph{Chiarella, C.} The Evaluation of Barrier Option Prices Under Stochastic Volatility / {C.~Chiarella, B.~Kang, G.~H.~Meyer} // Computers \& Mathematics with Applications. -- 2010. -- № 64. -- P.~2034-2048.
-
-10. \emph{Briani, D.M.} A hybrid approach for the implementation of the Heston model / {D.~M.~Briani, L.~Caramellino, A.~Zanette} // IMA Journal of Management Mathematics. -- 2017. --V. 28. -- № 4. -- P.~467-500.
-
-11. \emph{Apolloni, E.} A robust tree method for pricing American options with CIR stochastic interest rate / {E.~Appolloni, L.~Caramellino, A.~Zanette} // IMA Journal of Management Mathematics. -- 2015. --V. 26. -- № 4. -- P.~377-401.
-
-12. \emph{Kudryavtsev, O.} Fast and accurate pricing of barrier options under L\'evy processes / O. Kudryavtsev, S. Levendorski\v{i} //  Finance and Stochastics. -– 2009. -- Vol. -– № 4. -– P.~531--562.
-
-13. \textsc{Кудрявцев, О.Е.} Вычисление цен барьерных и американских опционов в моделях Леви.-- {\em  Обозрение прикл. и промышл. матем.}. 2010. т.17, в.2, с.210-220.
-
-14. \emph{Kudryavtsev, O. Ye.} An efficient numerical method to solve a special cass of integro-differential equations relating to the Levy models / O.~Ye.~Kudryavtsev // Mathematical Models and Computer Simulations, -- 2011. --V. 3. -- № 6. -- P.~706-711.
-
-15. \emph{Kudryavtsev O.}  Efficient pricing of Swing options in L\'evy-driven models / O.~Kudryavtsev, A.~Zanette //Quantitative Finance. -- 2013. --V. 13. -- № 4. -- P.~627-635.
-
-16. \emph{Carr, P.} Randomization and the American put, Review of Financial Studies / P.~Carr // Review of Financial Studies. -- 1998. - № 11. -- P.~597-626.
-
-17. \emph{Bouchard, B.} Maturity randomization for stochastic control problems / {B.~Bouchard, N.~El~Karoui, N.~Touzi} // Annals of Applied Probability. -- 2005. --V. 15. -- № 4. -- P.~2575-2605. 
-
-18. \emph{Kudryavtsev, O.} A Wiener-Hopf factorization approach for pricing barrier options in the Heston model / Kudryavtsev~O., Rodochenko~V. // Applied Mathematical Sciences. -- 2017. -- V.~11. -- №~2. -- P.~93--100.
-
-%\emph{Chourdakis, K.} Levy processes driven by stochastic volatility / K.Chourdakis // Asia-Pacific Finan. Markets. -- 2005. - № 12. -- P.~333-352.
 
 Itkin
 %\emph{Alfonsi, A.} High order discretization schemes for the CIR process: application to affine term structure and Heston models / A. Alfonsi // Mathematics of Computation. -- 2010. - № 79. -- P.~209-237.
