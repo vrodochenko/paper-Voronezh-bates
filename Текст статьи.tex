@@ -9,7 +9,7 @@
 
 \begin{document}
 
-\noindent УДК 517.925.7
+\noindent УДК 519.642.2
 
 \begin{center}
 \textbf{О численном методе решения семейства интегро-дифференциальных уравнений с переменными коэффициентами, возникающих в финансовой математике} \\[3mm]
@@ -168,7 +168,7 @@ $$L_{n,k}f(y) := L_{Y}^{V(n,k)}f(y) = \frac{1}{2\pi}\int^\infty_{-\infty}e^{iy\x
 \begin{equation*}
 	\psi_{n,k}(\xi) = \hat{\rho}^2\frac{V(n,k)}{2}\xi^2 - i\mu_Y(V(n,k))\xi + \phi(\xi),
 \end{equation*}
-где $\phi(\xi)$ -- характеристическая экспонента обобщённого пуассоновского процесса. Например, для модели Мертона оно имеет вид: $\phi(\xi) = \lambda_J(1-e^{\frac{\sigma_J^2}{2} + \mu_J})$
+где $\phi(\xi)$ -- характеристическая экспонента обобщённого пуассоновского процесса. Например, для модели Мертона она имеет вид: $\phi(\xi) = \lambda_J(1-e^{\frac{\sigma_J^2}{2} + \mu_J})$
 
 Для каждого из узлов $(n,k), n=N-1,...0$ возникает две задачи -- одна в предположении, что переход был совершён в вершину $(n+1,k_d)$, другая -- в предположении, что переход был совершён в вершину $(n+1,k_u)$. Решение каждой из этих задач может быть записано в терминах операторов $\varepsilon^{+}_{q}$ и $\varepsilon^{-}_{q}$ -- факторов Винера-Хопфа (см статью [14]):
 
@@ -213,8 +213,7 @@ f_{n}^{k_{u}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} \mathds{1}_{(- \
 Для вычисления интегралов используется алгоритм быстрого преобразования Фурье.
 
 \section{Выводы}
-Получен универсальный метод приближённого решения интегро-дифференциального уравнения с переменными коэффициентами, основанный на применении быстрой приближённой факторизации Винера-Хопфа сохраняющий работоспособность в широком диапазоне изменения параметров.
-Метод позволяет вычислять значения функционалов вида (2), для семейства моделей, основанных на широком классе процессов Леви с различным образом распределёнными скачками и имеет ряд приложений в области вычислительной финансовой математики.
+Получен универсальный метод приближённого решения специального класса задач с барьерами для интегро-дифференциального уравнения с переменными коэффициентами в частных производных, возникающих в финансовой математике и других приложениях. Разработанный численный метод основан на применении эффективных формул приближённой факторизации Винера-Хопфа, позволяет быстро вычислять значения функционалов вида (2) для широкого класса моделей, представимых в виде диффузионного процесса и негауссова процесса Леви, и не зависит от конкретного вида модели скачков. 
 
 Работа выполнена при  поддержке РФФИ (проект 15-32-01390).
 
@@ -265,7 +264,48 @@ f_{n}^{k_{u}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} \mathds{1}_{(- \
 
 20. \emph{Bouchard, B.} Maturity randomization for stochastic control problems / {B.~Bouchard, N.~El~Karoui, N.~Touzi} // Annals of Applied Probability. -- 2005. --V. 15. -- № 4. -- P.~2575-2605. 
 
-21. \emph{Kudryavtsev, O.} A Wiener-Hopf factorization approach for pricing barrier options in the Heston model / Kudryavtsev~O., Rodochenko~V. // Applied Mathematical Sciences. -- 2017. -- V.~11. -- №~2. -- P.~93--100.
+21. \emph{Kudryavtsev, O.} A Wiener-Hopf factorization approach for pricing barrier options in the Heston model / Kudryavtsev~O., Rodochenko~V. // Applied Mathematical Sciences. -- 2017. -- V.~11. -- №~2. -- P.~93--100.\begin{center}
+	1. \emph{Cox, J. C.} A Theory of the Term Structure of Interest Rates / J.~C.~Cox, J.~E.~Ingersoll, S.~A.~Ross // Econometrica. -- 1985. -- Vol. 53. -- P.~385-408.
+
+2. \emph{Bates, D. S.} Jumps and Stochastic Volatility: Exchange Rate Processes Implicit in Deutshe Mark Options / D.~S.~Bates // Review of Financial Studies. -- 1996. -- Vol. 9. -- P.~69–107.
+
+3. \emph{L. Heston} A Closed-Form Solution for Options with Stochastic Volatility with Applications to Bond and Currency Options. Review of Financial Studies. 1993. -- Vol. 6. -- P.~327-343.
+
+4. \emph{Cont, R.} Financial modelling with jump processes: monograph / R.~Cont, P.~Tankov. -- Chapman \& Hall/CRC Press. 2004. -- 535 p.
+
+5. \emph{Merton, R.} Option pricing when underlying stock returns are discontinuous / R.~Merton // J. Financ. Econ. -- 1976. -- Vol. 3. -- P. 125–144.
+
+6. \emph{Black, F.} The Pricing of Options and Corporate Liabilities / F. Black, M. Scholes // Journal of Political Economy. -- 1973. -- Vol. 81. -- № 3. -- P. 637-654.
+
+7. \emph{Kudryavtsev, O.} Advantages of the Laplace transform approach in pricing first touch digital options in L\'evy-driven models / O. Kudryavtsev // J. Boletin de la Sociedad Matematica Mexicana. -- 2016. -- V.~22. -- №~2. -- P.~711--731.
+
+8. \emph{Feng, Y. Q.} CVA under Bates Model with Stochastic Default Intensity /Y.~Q.~Feng //  Journal of Mathematical Finance. -- 2017. -- №7. -- P.~682-698.
+
+9. \emph{Chiarella, C.} The Evaluation of Barrier Option Prices Under Stochastic Volatility / {C.~Chiarella, B.~Kang, G.~H.~Meyer} // Computers \& Mathematics with Applications. -- 2010. -- № 64. -- P.~2034-2048.
+
+10. \emph{Briani, D.M.} A hybrid approach for the implementation of the Heston model / {D.~M.~Briani, L.~Caramellino, A.~Zanette} // IMA Journal of Management Mathematics. -- 2017. --V. 28. -- № 4. -- P.~467-500.
+
+11. \emph{Apolloni, E.} A robust tree method for pricing American options with CIR stochastic interest rate / {E.~Appolloni, L.~Caramellino, A.~Zanette} // IMA Journal of Management Mathematics. -- 2015. --V. 26. -- № 4. -- P.~377-401.
+
+12. \emph{Kudryavtsev, O.} Fast and accurate pricing of barrier options under L\'evy processes / O. Kudryavtsev, S. Levendorski\v{i} //  Finance and Stochastics. -– 2009. -- Vol. -– № 4. -– P.~531--562.
+
+13. \textsc{Кудрявцев, О.Е.} Вычисление цен барьерных и американских опционов в моделях Леви.-- {\em  Обозрение прикл. и промышл. матем.}. 2010. т.17, в.2, с.210-220.
+
+14. \emph{Kudryavtsev, O. Ye.} An efficient numerical method to solve a special cass of integro-differential equations relating to the Levy models / O.~Ye.~Kudryavtsev // Mathematical Models and Computer Simulations, -- 2011. --V. 3. -- № 6. -- P.~706-711.
+
+15. \emph{Kudryavtsev O.}  Efficient pricing of Swing options in L\'evy-driven models / O.~Kudryavtsev, A.~Zanette //Quantitative Finance. -- 2013. --V. 13. -- № 4. -- P.~627-635.
+
+16. \emph{Carr, P.} Randomization and the American put, Review of Financial Studies / P.~Carr // Review of Financial Studies. -- 1998. - № 11. -- P.~597-626.
+
+17. \emph{Bouchard, B.} Maturity randomization for stochastic control problems / {B.~Bouchard, N.~El~Karoui, N.~Touzi} // Annals of Applied Probability. -- 2005. --V. 15. -- № 4. -- P.~2575-2605. 
+
+18. \emph{Kudryavtsev, O.} A Wiener-Hopf factorization approach for pricing barrier options in the Heston model / Kudryavtsev~O., Rodochenko~V. // Applied Mathematical Sciences. -- 2017. -- V.~11. -- №~2. -- P.~93--100.
+
+%\emph{Chourdakis, K.} Levy processes driven by stochastic volatility / K.Chourdakis // Asia-Pacific Finan. Markets. -- 2005. - № 12. -- P.~333-352.
+
+Itkin
+%\emph{Alfonsi, A.} High order discretization schemes for the CIR process: application to affine term structure and Heston models / A. Alfonsi // Mathematics of Computation. -- 2010. - № 79. -- P.~209-237.
+\end{center}
 
 
 \section{Об авторах}
