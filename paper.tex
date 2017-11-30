@@ -1,0 +1,412 @@
+\documentclass[a4paper]{jpconf}
+\usepackage{graphicx}
+\usepackage{amsmath}%,amsfonts,amssymb}
+\begin{document}
+\title{On a numerical method for solving integro-differential equations with variable coefficients with applications in finance}
+
+\author{O. Kudryavtsev$^1$, V. Rodochenko$^2$}
+
+\address{$^1$ Russian Customs Academy Rostov branch, Budennovskiy 20, Rostov-on-Don 344002, Russia}
+\address{$^2$Institute for Mathematics, Mechanics, and Computer Science in the name of I.I. Vorovich (Southern Federal University), Milchakova str. 8a, Rostov-on-Don 344090, Russia}
+
+\ead{$^1$ koe@donrta.ru, $^2$ vrodochenko@gmail.com}
+
+\begin{abstract}
+	We propose a new general numerical method aimed to solve integro-differential equations with variable coefficients. The problem under consideration arises in finance where in the context of pricing barrier options  in a wide class of stochastic volatility models with jumps. 
+	To handle the effect of the correlation between the price and the variance, we use a suitable substitution for processes. Then we construct a Markov-chain approximation for the variation process on small time intervals and apply a maturity randomization technique. The result is a
+	system of
+	boundary problems for integro-differential equations with constant coefficients on the line in each vertex of the chain. We solve the arising problems  using a numerical  Wiener-Hopf factorization method. The approximate formulae for the factors are efficiently implemented by means of the Fast Fouirier Transform. Finally, we use a recurrent procedure that moves backwards in time on the variance tree. We demonstrate the convergence of the method using Monte-Carlo simulations and compare our results with the
+	results obtained by the Wiener-Hopf method with closed-form expressions of the factors.
+\end{abstract}
+
+\section{Introduction}
+
+In the years since Dynkin, Feinman, and Katz published their fundamental works, it has been well known, that the solution to a diffusion equation in a given domain can be interpreted as an expected value of a function of Brownian motion at the first exit point from the domain. This idea was later generalized for the processes combining both diffusion and Levy models, trajectories of which can be discontinuous. Nowadays Levy processes are being widely used for modeling various social end economical processes. Both researchers and financial institutes pay a lot of attention to the processes. From the point of view of financial mathematics, development of means for solving these equations allows to solve an essential applied problem - the problem of estimation of risk-neutral prices of derivative financial instruments in models with jumps, in particular - barrier options.
+
+Thus, calculating functionals from Markov processes with jumps plays an important role in quantitative finance due to the fact that the presence of jumps even on liquid assets became more pronounced in recent decades. This task, nonetheless, is mathematically complex and comes down to solving complex partial integro-differential equations known as forward and backward Kolmogorov equations with certain initial and boundary conditions. As a rule, analytical methods are useless for solving such equations, which brings a necessity to use cutting-edge methods of numerical analysis.
+
+Let's consider a system of stochastic differential equations in Ito form that describes a dynamics of a position $S_t$ of a particle on a line, that is connected with variance $V_t$ driven by CIR process \cite{cir}. 
+\begin{equation}
+\begin{array}{l}
+dS_t = (r-\lambda_J \zeta)S_t dt+\sqrt{V_t} S_t dZ^S_t+(J-1) S_t dN_t,
+\smallskip\\
+dV_t= \kappa_V(\theta_V-V_t)dt+\sigma_V\sqrt{V_t}dZ^V_t,
+\smallskip\\
+<dZ^S_t,dZ^V_t> = \rho dt,
+\smallskip\\
+\end{array}
+\end{equation}
+where $r$ -- is a non-negative parameter, $Z^S_t$ and $Z^V_t$ are Wiener processes with correlation coefficient $\rho$. Jumps are defined by Poisson process $N_t$ with intensity $\lambda_J$, that counts a quantity of identically distributed jumps of size $J$ to the moment $t$. The process $N_t$ does not depend on processes $Z^S_t$ and $Z^V_t$, and is independent of $J$ as well. Parameter $\kappa_V$ defines the speed of ``regression'' of variance process to a ``long-run'' variance average value $\theta_V$, $\sigma_V>0$ is referred to as a ``volatility'' of variance. The relation between $\zeta$ and the parameters of distribution $J$  is being set up on the assumption that $\exp(-rt)S_t$ is a martingale process. 
+
+In financial applications $S_t$ in (1) simulates dynamics of an underlying asset, whereas a parameter $r \ge 0$ denotes a risk-free interest rate. If jumps $J$ are distributed log-normally, $J\sim \mbox{LogN}(\mu_J, \sigma_J^2)$, then $\zeta = e^{\mu_J + \frac{1}{2}\sigma_J^2} - 1$ and we obtain a well-known ``Bates model'' initially presented in paper \cite{bates}. By setting jump intensity to zero while keeping a variance process dynamics, we will obtain a system that represents a Heston model - one of the most widely-used models with stochastic volatility \cite{heston}.
+
+Replacing the process $V_t$ with a positive constant $V_0$ will make the first equation of the system (1) describe a Levy process which is refered to as ''jump-diffusion'' (see, for example, \cite{cont_tankov}). Particularly, if $J$ is log-normally distributed, we get Merton model \cite{merton}. With the intensity of jumps set to zero the model finally comes down to the most deeply explored models in finance - the Black-Scholes model \cite{b_s}.
+
+The goal of the research is to develop a numerical method to calculate the following conditional expectation
+
+\begin{equation}
+f(S,V,t) = M[e^{-r(T-t)}  {\bf 1}_{\underline{S}_T>H} G(S_T) | S_t = S, V_t = V],
+\end{equation}
+for the class of models described by (1), where $H$ is an absorbing barrier, $\underline{S}_T (= \inf_{0\le t\le T}S_T)$ is infimum process for the process $S_t$. 
+
+Functionals like (2) arise in financial mathematics when solving a problem of pricing barrier options in models described by the system (1).
+A ''barrier option'' is a contract that pays a certain sum $G(S_T)$ on expiration time $T$, if and only if the underlying asset price $S_T$ does not cross a certain barrier $H$ from above (down-and-out barrier option) or from below $H$ (up-and-out barrier option). For example, for an option that grant a holder a right to sell a certain asset for a certain price $K$ (``put option''), $G(S)=\max\{0, K - S\}$, whereas for the option that grants a right to buy a certain asset for a certain price $K$ (``call option''), $G(S)=\max\{0, S - K\}$.
+
+Suppose $\tau = T-t$, then $F(S,V,\tau)\left(=f(S,V, T-\tau)\right)$ satisfies the following (see, for example, \cite{feng}) partial integro-differential equation with variable coefficients in the domain $S(\tau) > H$:
+\begin{eqnarray*}
+	\frac{\partial F(S,V,\tau)}{\partial \tau} &= &
+	\frac{1}{2} VS^2 \frac{\partial^2 F(S,V,\tau)}{\partial S^2} +
+	\rho\sigma_V VS \frac{\partial^2 F(S,V,\tau)}{\partial S \partial V} +
+	\\
+	\frac{1}{2} \sigma_V^2 V \frac{\partial^2 F(S,V,\tau)}{\partial V^2} &+&
+	(r - \lambda_J \zeta) S \frac{\partial F(S,V,\tau)}{\partial S} +
+	\kappa_V(\theta_V - V) \frac{\partial F(S,V,\tau)}{\partial V} - 
+	\\
+	(r+\lambda_J)F(S,V,\tau) &+&
+	\lambda_J \int_0^\infty F(JS,V,\tau) f(J) dJ,
+	\\
+	F(S,V,0) &=& G(S),
+\end{eqnarray*}
+where $f(J)$ -- is a probability density function for jump amplitudes $J$. Because $H$ is an absorbing barrier and $S_t$ has an ability to cross the barrier, we need to include condition $F(S,V,\tau) = 0,  S(\tau) \le H$.
+
+Most common approaches to solve such equations are the Monte-Carlo method \cite{alfonsi}, finite-difference schemes (see, for example, \cite{chiarella}) and a hybrid approach that combines tree method and finite-difference schemes \cite{zanette_heston}.
+
+The most significant drawback of Monte-Carlo methods is low computational performance, because for the models with jumps and problems with barriers detailed trajectory simulation becomes inevitable. Finite-difference schemes approach highly depends on exact kind of Levy model and does not provide much accuracy because a corresponding matrix of a system is dense (unlike diffusion models), even though many authors implicitly use only its tridiagonal part for its inversion.
+Some authors combine split method and finite-difference schemes while approximating an integral component as a function of a symbol of the corresponding pseudo-differential operator from finite differences \cite{itkin}, but for popular Levy models it leads to computing matrix logarithms and exponents, which can lead to sufficient computational errors.
+
+For the sake of dimension reduction some authors (see, for example, \cite{chourdakis, zanette_tree}) suggest using Markov chain with continuous time for volatility process approximation. The simplest case of this approach is a binomial model \cite{zanette_tree}. As a result, we obtain Levy model with regime-switching volatility. Markov chain is constructed in a way to save corresponding drift and volatility for transitional probabilities from every state. 
+
+In a series of articles (see, for example, \cite{kudr_and_lev}) a general method of approximate Wiener-Hopf factorization for a wide class of Levy processes with a constant variation was used to solve problems with barriers for integro-differential equations, to which evaluation of prices for different options comes down. The numerical implementation of Wiener-Hopf operators was performed with the help of Fast Fourier Transform. This made the computational methods comparable to finite-difference schemes in simplicity of implementation, yet significantly faster and more accurate, as numerical experiments show \cite{kudr_and_lev}. 
+
+One of the core ideas of a new numerical method proposed for solving a problem (2) is to use a new enhanced approximate Wiener-Hopf factorization, initially presented in \cite{kudr_mex}. The new formulae are more general-purposed in comparison to \cite{kudr_and_lev} and easier to use, as they do not necessarily require the separation of main part of a characteristic function under factorization. In order to solve a problem after time discretization (for example, Carr randomization) the coefficients of the integro-differential operator obtained are going to be approximated using a tree method which models a volatility process, leading therefore a problem in each state to a model with a constant volatility, and new explicit formulae for Wiener-Hopf factors are going to be used for a respective task. As a result, we obtain a method comparable in speed to a finite-difference scheme, but more general and accurate.
+
+\section{Materials and methods}
+
+\subsection{Process substitution}
+
+One important feature of the model considered is an effect of correlation between Wiener processes in the equations for price and variation. To solve these equations one must take it into account while developing a numerical procedure. The method we use is similar to the one in [10], and aimed at constructing a suitable substitution for processes. Let us define 
+
+\begin{equation*}
+\begin{array}{l}
+	\hat{\rho} = \sqrt{1-\rho^2},
+	\smallskip\\
+	W = Z^V,
+	\smallskip\\
+	\rho W + \hat{\rho}Z = Z^S,
+\end{array} 
+\end{equation*}
+
+where $W_t$ $Z_t$ -- are independent Brownian motions. Let us first also introduce a substitution for the process $S_t$, setting 
+
+$$Y_t = \ln(\frac{S_t}{H}) - \frac{\rho}{\sigma_V}V_t$$. 
+
+In these terms, $$S_t = H\exp(Y_t + \frac{\rho}{\sigma_V}V_t) $$. 
+
+Being constructed in such way, the substitution allows to proceed a logarithmic scale and  make a normalization with respect to a barrier at the same time, which makes computation more convenient.
+After making both substitutions, the system (1) will be as follows:
+
+\begin{equation*}
+\begin{array}{l}
+d Y_t = (r-\frac{1}{2}V_t - \frac{\rho}{\sigma_V}\kappa_V(\theta_V - V_t) - \lambda_J \zeta)dt+\hat{\rho}\sqrt{V_t} dZ_t+\ln JdN_t,
+\smallskip\\
+dV_t= \kappa_V(\theta_V-V_t)dt+\sigma_V\sqrt{V_t}dW_t.
+\smallskip\\
+\end{array}
+\end{equation*}
+
+Let's introduce a simpler notation for the drifts we use later:
+
+\begin{equation*}
+\begin{array}{l}
+\mu_Y(V_t) = r - \frac{1}{2}V_t - \frac{\rho}{\sigma_V}\kappa_V(\theta_V - V_t)  - \lambda_J \zeta,
+\smallskip\\
+\mu_V(V_t) = \kappa_V(\theta_V - V_t).
+\smallskip\\
+\end{array}
+\end{equation*}
+
+\subsection{Carr randomization}
+
+
+In order to be able to operate on small timeframes we can use a procedure known as ''Carr randomization'' (''Canadization''), first introduced in [19] and generalized for a more general case of stochastic control problems in paper \cite{touzi}. Let's denote $f_{n}({Y}_{t_n}, {V}_{t_n}) = f(H\exp(Y_t + \frac{\rho}{\sigma_V}V_t), {V}_{t_n}, t_n)$ -- a Carr approximation for function $f(S,V,t)$ at the moment $t_n$, where $t_i = i \Delta \tau$ and $\Delta \tau = \frac{T}{N}$. Let $\{\tau_i\}_{i=1}^N$ - be a sequence if independent exponentially distributed variables with an average value of $\Delta \tau$. Let's denote $Z_\tau^n=Y_{t_n + \tau}+\frac{\rho}{\sigma_V}V_{t_n + \tau}$.
+Assuming $f_{N}(Y_T, V_T)=G(H\exp (Y_T+\frac{\rho}{\sigma_V}V_T ))$, we have an opportunity to write down the following:
+
+$$
+f_{n}({Y}_{t_n}, {V}_{t_n}) = M_{t_{n}} [ e^{-r\Delta \tau}  
+{\bf 1}_{\underline{Z}^n_{\tau_n} > 0} f_{n+1}(Y_{t_n+\tau_n},V_{t_n+\tau_n})], \smallskip\\ n = N-1,..,0 
+$$
+
+This form of expectation can be iteratively calculated and, for the case of model with fixed variance, comes down to a sequence of problems. In our case, however, we need an approximation for the CIR process $V$ in order to compute it.
+
+\subsection{Approximation}
+
+The next goal we would like to achieve is to reduce the initial problem to a set of problems with lower dimension and obtain a Levy model with a regime-switching volatility. For this purpose we construct approximation of a CIR process using a Markov chain following the procedure from \cite{zanette_tree}. Among the advantages of the scheme we can mention fast convergence towards the parent process and the ability to remain adequate in a wide range of parameters. In particular, keeping the Feller condition $2\kappa_V\theta_V>\sigma_V^2r$ is not significant in this case for the procedure to remain correct.
+
+Let us construct a binomial tree with ``shared'' vertices defined by formula:
+\begin{equation*}	
+V(n,k) = (\sqrt{V_0} + \frac{\sigma_V}{2}(2k-n)\sqrt{\Delta \tau})^2 {\bf 1}_{(\sqrt{V_0} + \frac{\sigma_V}{2}(2k-n)\sqrt{\Delta \tau}) > 0}, 
+\\ n = 0,1,...,N, \; k = 0,1,...,n.
+\end{equation*}
+
+The idea of the approximation is that in every moment of time $t_n$ a variation can take one of the states $V(n,k)$. In the moment $t_{n+1}$ from the vertex $(n,k)$ we can either ho ``up'' -- to a vertex $(n+1,k_u)$, or ``down'' -- to $(n+1,k_d)$. The vertices $k_u$ and $k_d$ are being calculated in accordance with the drift $\mu(V_{(n,k)})$, using the following rules:
+\begin{eqnarray*}
+	k_u^{\Delta \tau}(n,k) = min\{{k^\ast} : k + 1 \le k^\ast \le n + 1, V(n,k) + \mu_{V}(V(n,k)){\Delta \tau} \le V(n+1,k^\ast)\} \\
+	k_d^{\Delta \tau}(n,k) = max\{{k^\ast} : 0 \le k^\ast \le k, V(n,k) + \mu_{V}(V(n,k)) \ge V(n+1,k^\ast)\}
+\end{eqnarray*}
+
+Let us define transitional probabilities as follows:
+
+$$
+p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)} = 
+\frac{\mu_{V}(V(n,k))\Delta \tau+V(n,k)-V(n+1,k^{\Delta \tau}_{d}(n,k))}{V(n+1,k^{\Delta \tau}_{u}(n,k))-V(n+1,k^{\Delta \tau}_{d}(n,k))}
+$$
+
+In order to maintain correct work of the scheme for different parameters values we should introduce additional rules that make impossible for the negative probabilities to appear in some vertices:
+\begin{equation*}
+p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)} :=
+\begin{cases}
+1, & p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)} > 1\\
+p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)}, & p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)} \in [0, 1]\\
+0, & p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)} < 0
+\end{cases}
+, \;\;\;\; p^{\Delta \tau}_{k^{\Delta \tau}_{d}(n,k)} := 1 - p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)},
+\end{equation*}
+
+\subsection{Approximate factorization}
+
+%%%%%%%%%% ???????? ????? ??????????? ?????????? ??? ????????????? ???????? V(n,k) ? ? ?????? ????????? ??? ???????? ? ???????? ????????? L_{n,k}, ?????? ??????????? ??? $f_{n}^{k}(y)$  ? ???????? F_n, ? ?? F!
+
+Having fixed the variation in each of the vertices, we now have an opportunity to consider a family of problems with an integro-differential operator that looks as follows:
+
+$$L_{n,k} := L_{Y}^{V(n,k)} = \mu_{Y}(V(n,k)) \partial_{y} + \frac{1}{2}\hat{\rho}^2 V(n,k)\partial^2_{yy}$$
+
+This operator can be interpreted as a pseudo-differential operator 
+
+$$L_{n,k}f(y) := L_{Y}^{V(n,k)}f(y) = \frac{1}{2\pi}\int^\infty_{-\infty}e^{iy\xi}\psi_{n,k}(\xi)\hat{f}(\xi)d\xi.$$
+
+with the symbol $\psi_{n,k}(\xi)$ -- a characteristic exponent of a process $Y_t$ with $V_t = V(n,k)$:
+
+\begin{equation*}
+\psi_{n,k}(\xi) = \hat{\rho}^2\frac{V(n,k)}{2}\xi^2 - i\mu_Y(V(n,k))\xi + \phi(\xi),
+\end{equation*}
+where $\phi(\xi)$ -- is a characteristic exponent of a compound Poisson process. For example, for a Merton model it looks as follows: $\phi(\xi) = \lambda_J(1-e^{\frac{\sigma_J^2}{2} + \mu_J})$
+
+For each of vertices $(n,k), n=N-1,...0$ two problems arises -- one in assumption that the transition has gone up to a vertex $(n+1,k_d)$, another one in assumption that the transition has gone down to a vertex $(n+1,k_u)$. 
+
+Let us introduce a shorthand notation $f_{n}^{k}(y)$ = $f(He^{y+\frac{\rho}{\sigma}V(n,k)},V(n,k),n\Delta t)$. In these term $f_{N}^{k}(y) = G(He^{y+\frac{\rho}{\sigma}V(N,k)})$.
+
+To find each of $f_{n}^{k}(y)$, one should solve two problems:
+\begin{gather}
+	\begin{cases}
+	(q - L_{n+1,k_{u}})f^{k_{u}}(y) = {\Delta t}^{-1} f^{k_u}_{n+1}(y) & y > - \frac{\rho}{\sigma}V(n,k) \\
+	f_{n+1}^{k_{u}}(y) = 0 & y \le - \frac{\rho}{\sigma}V(n,k)
+	\end{cases}
+	\end{gather}
+\begin{gather}
+	\begin{cases}
+	(q - L_{n+1,k_{d}})f^{k_{d}}(y) = {\Delta t}^{-1} f^{k_d}_{n+1}(y) & y > - \frac{\rho}{\sigma}V(n,k) \\
+	f_{n+1}^{k_{d}}(y) = 0 & y \le - \frac{\rho}{\sigma}V(n,k)
+	\end{cases}
+	\end{gather}
+where $q = {\Delta t}^{-1} + r$; $n = 0,1,...,N$; $k = 0,1,...,n$.
+
+Let us denote $\widetilde{f}^{k_u}(y)$ and $\widetilde{f}^{k_d}(y)$ the solutions for (3) and (4). We assume
+$$
+f_{n}^{k}(y) = p_{k^{{\Delta t}}_{d}(n,k)}\widetilde{f}^{k_d}_{n}(y) + p_{k^{{\Delta t}}_{u}(n,k)}\widetilde{f}^{k_u}_{n}(y)$$
+
+Solutions to each of the problems mentioned can be written in terms of operators $\varepsilon^{+}_{q}$ and $\varepsilon^{-}_{q}$ -- the Wiener-Hopf factors (see paper \cite{kudr_and_lev}):
+
+\begin{eqnarray*}
+	f_{n}^{k_{d}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} {\bf 1}_{(- \frac{\rho}{\sigma_V}V(n,k), +\infty)}(y) \; \varepsilon^{+}_{q} f_{n+1}^{k_d}(y);\\
+	f_{n}^{k_{u}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} {\bf 1}_{(- \frac{\rho}{\sigma_V}V(n,k), +\infty)}(y) \; \varepsilon^{+}_{q} f_{n+1}^{k_u}(y),
+\end{eqnarray*}
+
+Further on, consequently calculating $f_n^k = p_{k_d^{\Delta \tau}(n,k)} f_n^{k_d}(y) + p_{k_u^{\Delta \tau}(n,k)} f_n^{k_u}(y)$ for $n=N-1,..,0, k = 0,...,n,$
+where $f_n^k = f(He^{y+\frac{\rho}{\sigma_V}V(n,k)}, V(n,k), n\Delta \tau)$, we can get the approximate values for the sought-for functional (2) after returning to the initial notations. Unlike a much simpler case of Heston model \cite{kudr_rod}, the presence of jumps does not allow to use closed formulae for factors unknown at the moment. Analytical formulae for the factors look as follows:
+\begin{eqnarray*}
+	\phi^+_q(\xi)&=&\exp\left[(2\pi i)^{-1}
+	\int_{-\infty+i\omega_-}^{+\infty+i\omega_-}\frac{\xi\ln(q+\psi(\eta))}
+	{\eta(\xi-\eta)}d\eta\right];\\
+	\phi^-_q(\xi)&=&\exp\left[-(2\pi i)^{-1}
+	\int_{-\infty+i\omega_+}^{+\infty+i\omega_+}\frac{\xi\ln(q+\psi(\eta))}
+	{\eta(\xi-\eta)}d\eta\right],
+\end{eqnarray*}
+
+The constants $\omega_+$ and $\omega_-$ are so that $\omega_-<0<\omega_+$ play roles of parameters here and are being set to retain convergence of the respective integrals depending on Levy process parameters. In paper \cite{kudr_mex} a general purpose and convenient for a numerical implementation representation of Wiener-Hopf factors was derived. The function $\phi^+_q(\xi)$ allows analytical continuation to a half-plane $\Im \xi>\omega_-$ and can be represented as follows:
+
+\begin{eqnarray*}
+	\phi^+_q(\xi)&=&\exp\left[i\xi F^+(0)-\xi^2\hat{F}^+(\xi)\right],\\ 
+	F^+(x)&=&{\bf 1}_{(-\infty,0]}(x)(2\pi)^{-1}
+	\int_{-\infty+i\omega_-}^{+\infty+i\omega_-}e^{ix\eta}\frac{\ln(q+\psi(\eta))}
+	{\eta^2}d\eta;
+	\\
+	\hat{F}^+(\xi)&=&\int_{-\infty}^{+\infty}e^{-ix\xi}F^+(x)dx.
+\end{eqnarray*}
+
+Analogously, $\phi^-_q(\xi)$ allows an analytical continuation to a halfplane $\Im \xi<\omega_+$ and can be represented as follows:
+\begin{eqnarray*}
+	\phi^-_q(\xi)&=&\exp\left[-i\xi F^-(0)-\xi^2\hat{F}^-(\xi)\right],\\
+	F^-(x)&=&{\bf 1}_{[0,+\infty)}(x)(2\pi)^{-1}
+	\int_{-\infty+i\omega_+}^{+\infty+i\omega_+}e^{ix\eta}\frac{\ln(q+\psi(\eta))}
+	{\eta^2}d\eta;\\
+	\hat{F}^-(\xi)&=&\int_{-\infty}^{+\infty}e^{-ix\xi}F^-(x)dx.
+\end{eqnarray*}
+
+To calculate integrals we use an algorithm of Fast Fourier Transform.
+
+\section{Results and discussion}
+
+In this section we provide the results of the numerical experiments, that demonstrate the convergence and accuracy of the method proposed. We will refer to our method as M\&FWHF-approx, having in mind the use of a Markov Chain approximation and the approximation for Wiener-Hopf factors. To be able to compare the result with the existing methods, we use the European down-and-out put in Heston model with the parameters set as follows: $V_0=0.01$, $\kappa=2$, $\theta=0.01$, $\sigma=0.2$, $\rho=0.5 $, $r=0.095$. Option parameters are: $T=1$, $K=100$, $H=90$.
+We also have closed formulae expressions for the Wiener-Hopf factors for the Heston model. So for comparison we will use the algorithm \cite{kudr_rod} that uses them for computation (which we will refer to as M\&FWHF).
+
+As a benchmark for all methods we used a plain Monte-Carlo generator that uses a Mersenne Twister as a pseudo-random generator. 
+
+The advanced Alfonsi \cite{alfonsi} MC results were obtained using the code implemented into the program platform Premia.
+
+To perform the experiment we used a PC with a configuration: Intel CPU, 2.4 GHz, RAM 8 Gb, Windows 10. The program implementation was made using a scientific Python stack (numpy, scipy and pandas packages).
+
+The algorithm parameters for the M\&FWH are as follows: N is the number of time steps, L is a scale coefficient, which controls the localization error of the FFT, and $M$ is a number of points, meant to control its the discretization error. ``Stock price'' is a price of an underlying asset.
+
+The algorithm parameters for the M\&FWH-approximare are as follows: N is the number of time steps, h is a distance between the points on a logarithmic scale, which controls the localization error of the FFT, and $M$ is a number of points, meant to control its the discretization error. "Stock price" is a price of an underlying asset.
+
+Table 1 illustrates the convergence of the method, Table 2 and Table 3 shows absolute and relative error values, respectively. It's therefore natural to assume that similar accuracy can be achieved in models where no closed formulae representations for factors is known.
+
+\begin{table}[h]
+	\caption{\label{opt_values} Barrier put option prices for the case of Heston model, calculated with
+		Standard MC, Alfonsi MC, M*FWHF and FWH-approximate. \\
+		Heston model parameters: $v_0=0.01$, $\kappa=2$, $\theta=0.01$, $\sigma=0.2$, $ \rho = 0.5$, $ r = 0.095 $ \\
+		Option parameters: $K=100$, $H=90$, $r=0.072310$, $T=1$.\\
+		Method parameters: $h$ -- space variable step, $N$ -- number of time steps
+		(or an algorithm parameter for FWHF methods), $L$ -- a scale multiplier parameter for M\&FWHF method, $M$ -- number of points for FWHF methods, $S$ -- stock price.} 
+	
+	\begin{center}
+		\lineup
+		\begin{tabular}{*{6}{l}}
+			\br
+			Stock   & Standard MC& Alfonsi MC  & M*FWHF        &\multicolumn{2}{c}{FWHF-approximate} \cr                             
+			price 	& (mean  	& (mean  	    &              &                  &                    \cr
+			      	& value) 	& value)  	    &  $N=300$     &   $N=300$        &  $N=300$           \cr
+			& $h=0.0001$& $h=0.0001$	& $M=2^{18}$   & $h=5\cdot10^{-6}$& $h=1\cdot10^{-6}$  \cr
+			& $N=500000$& $N=600000$    & $L=3$        &   $M=2^{20}$     &  $M=2^{20}$        \cr
+			\mr
+			$S=91$  &  0.21914  &   0.304862    &   0.218113   &   0.226777565    &   0.222095738  \cr
+			$S=95$  &  0.57994  &   0.579616    &   0.587911   &   0.607220378    &   0.590497506  \cr
+			$S=101$ &  0.26102  &   0.256442    &   0.267915   &   0.272406178    &   0.265426451  \cr
+			$S=106$ &  0.08105  &   0.078067    &   0.082999   &   0.084105566    &   0.082232504  \cr
+			$S=111$ &  0.02254  &   0.021498    &   0.022964   &   0.023224662    &   0.022804964  \cr
+			$S=116$ &  0.00668  &   0.006012    &   0.006249   &   0.006828979    &   0.006737655  \cr
+			\br
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\begin{table}[h]
+	\caption{\label{ae_values} Absolute error values in \% for barrier put option prices for the case of Heston model, calculated with
+		Standard MC, Alfonsi MC, M*FWHF and FWH-approximate. \\
+		Heston model parameters: $v_0=0.01$, $\kappa=2$, $\theta=0.01$, $\sigma=0.2$, $ \rho = 0.5$, $ r = 0.095 $ \\
+		Option parameters: $K=100$, $H=90$, $r=0.072310$, $T=1$.\\
+		Method parameters: $h$ -- space variable step, $N$ -- number of time steps
+		(or an algorithm parameter for FWHF methods), $L$ -- a scale multiplier parameter for M\&FWHF method, $M$ -- number of points for FWHF methods, $S$ -- stock price.} 
+	
+	\begin{center}
+		\lineup
+		\begin{tabular}{*{6}{l}}
+			\br
+			Stock	& standard MC& Alfonsi MC  & M*FWHF        &\multicolumn{2}{c}{FWHF-approximate} \cr 
+			price  	&  	        &   	    &  $N=300$     &   $N=300$        &  $N=300$           \cr
+			& $h=0.0001$& $h=0.0001$	& $M=2^{18}$   & $h=5\cdot10^{-6}$& $h=1\cdot10^{-6}$  \cr
+			& $N=500000$& $N=600000$    & $L=3$        &   $M=2^{20}$     &  $M=2^{20}$        \cr
+			\mr
+			$S=91$  &  0.00854646&   0.085722   &   0.001027   &   0.007637565    &   0.002955738      \cr
+			$S=95$  &  0.02783712&   0.000324   &   0.007971   &   0.027280378    &   0.010557506      \cr
+			$S=101$ &  0.01226794&   0.004578   &   0.006895   &   0.011386178    &   0.004406451      \cr
+			$S=106$ &  0.0037283 &   0.002983   &   0.001949   &   0.003055566    &   0.001182504      \cr
+			$S=111$ &  0.00153272&   0.001042   &   0.000424   &   0.000684662    &   0.000264964      \\
+			$S=116$ &  0.00044088&   0.000668   &   0.000431   &   0.000148979    &   0.000057854      \cr
+			\br
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\begin{table}[h]
+	\caption{\label{re_values} Relative error values in \% for barrier put option prices for the case of Heston model, calculated with
+		Standard MC, Alfonsi MC, M*FWHF and FWH-approximate. \\
+		Heston model parameters: $v_0=0.01$, $\kappa=2$, $\theta=0.01$, $\sigma=0.2$, $ \rho = 0.5$, $ r = 0.095 $ \\
+		Option parameters: $K=100$, $H=90$, $r=0.072310$, $T=1$.\\
+		Method parameters: $h$ -- space variable step, $N$ -- number of time steps
+		(or an algorithm parameter for FWHF methods), $L$ -- a scale multiplier parameter for M\&FWHF method, $M$ -- number of points for FWHF methods, $S$ -- stock price.} 
+	
+	
+	
+	\begin{center}
+		\lineup
+		\begin{tabular}{*{6}{l}}
+			\br
+			Stock	& standard MC& Alfonsi MC  & M*FWHF        &\multicolumn{2}{c}{FWHF-approximate} \cr 
+			price  	&  	        &   	    &  $N=300$     &   $N=300$        &  $N=300$           \cr
+					& $h=0.0001$& $h=0.0001$	& $M=2^{18}$   & $h=5\cdot10^{-6}$& $h=1\cdot10^{-6}$  \cr
+					& $N=500000$& $N=600000$    & $L=3$        &   $M=2^{20}$     &  $M=2^{20}$        \cr
+			\mr
+			$S=91$  &  3.9        &   39.1        &   0.5       &   3.5       &   1.3              \\
+			$S=95$  &  4.8        &   1.4         &   1.4       &   4.7       &   1.8              \\
+			$S=101$ &  4.7        &   2.6         &   2.6       &   4.4       &   1.7              \\
+			$S=106$ &  4.6        &   2.4         &   2.4       &   3.8       &   1.5              \\
+			$S=111$ &  6.8        &   1.9         &   1.9       &   3.0       &   1.2              \\
+			$S=116$ &  6.6        &   6.5         &   6.5       &   2.2       &   0.9              \\
+			\br
+		\end{tabular}
+	\end{center}
+\end{table}
+
+\section{Conclusion}
+
+A general method for numerical solving of a special class of problems with barriers for partial integro-differential equations with variable coefficients  arising in financial mathematics and other applications has been developed. The numerical method proposed is based on efficient  formulae of approximate Wiener-Hopf factorization and allows fast calculation of values of functional of kind (2) for a wide class of models that can be represented as a diffusional process and a non-gaussian Levy process and does not depend on the exact type of jump model. 
+
+\ack{Acknowledgements}
+The reported study was funded by RFBR according to the research projects No 15-32-01390 and No 18-01-00910 (in part).
+
+
+\section*{References}
+%http://iopscience.iop.org/article/10.1088/1742-6596/774/1/012014/pdf - issues in parentheses, non-bold
+\medskip
+\begin{thebibliography}{18}
+
+\bibitem{cir} Cox J C, Ingersoll J E and Ross S A 1985 A theory of the term structure of interest rates  {\it Econometrica.} {\bf 53} 385--408
+
+\bibitem{bates} Bates D S 1996 Jumps and stochastic volatility: exchange rate processes implicit in deutsche mark options {\it Review of Financial Studies.}  {\bf 9} 69--107
+
+\bibitem{heston} Heston L 1993 A closed-form solution for options with stochastic volatility with applications to bond and currency options. {\it Review of Financial Studies.} {\bf 6} 327--43
+
+\bibitem{cont_tankov} Cont R and Tankov P 2004 {\it Financial Modelling with Jump Processes} (Boca Raton: Chapman \& Hall/CRC Financial Mathematics Series)
+
+\bibitem{merton} Merton R 1976 Option pricing when underlying stock returns are discontinuous {\it Journal of Financial Economics} {\bf 3} 125--44
+
+\bibitem{b_s} Black F and Scholes M 1973 The pricing of options and corporate liabilities {\it Journal of Political Economy} {\bf 81}(3) 637--54
+
+\bibitem{feng} Feng Y Q 2017 CVA under Bates model with stochastic default intensity {\it Journal of Mathematical Finance} {\bf 7} 682--698
+
+\bibitem{alfonsi} Alfonsi A 2010 High order discretization schemes for the CIR process: application to affine term structure and Heston models {\it Mathematics of Computation} {\bf 79} 209--37
+
+\bibitem{chiarella} Chiarella C, Kang B and Meyer G H 2010 The evaluation of barrier option prices under stochastic volatility {\it Computers \& Mathematics with Applications} {\ bf 64} 2034--48
+
+\bibitem{zanette_heston} Briani D M, Caramellino L and Zanette A 2017 A hybrid approach for the implementation of the Heston model {\it IMA Journal of Management Mathematics} {\bf 28}(4) 467--500
+
+\bibitem{itkin} Itkin A 2017 {\it Pricing Derivatives Under Levy Models} (Basel: Birkhauser) 
+
+\bibitem{chourdakis} Chourdakis K 2005 Levy processes driven by stochastic volatility {\it Asia-Pacific Financial Markets}(12) 333--52
+
+\bibitem{zanette_tree} Apolloni E, Caramellino L and Zanette A 2015 A robust tree method for pricing American options with CIR stochastic interest rate {\it IMA Journal of Management Mathematics} {\bf 26}(4) 377--401
+
+\bibitem{kudr_and_lev} Kudryavtsev O and Levendorski\v{i} S 2009 Fast and accurate pricing of barrier options under L\'evy processes {\it Finance and Stochastics} {\bf 13}(4) 531--62
+
+\bibitem{kudr_mex} Kudryavtsev O 2016 Advantages of the Laplace transform approach in pricing first touch digital options in L\'evy-driven models {\it Boletin de la Sociedad Matematica Mexicana} {\bf 22}(2) 711--31
+
+\bibitem{carr} Carr P 1998 Randomization and the American put {\it Review of Financial Studies} {\bf 11} 597--626
+
+\bibitem{touzi} Bouchard B, Karoui N El and Touzi N 2005 Maturity randomization for stochastic control problems  {\it Annals of Applied Probability} {\bf 15}(4) 2575--605
+
+\bibitem{kudr_rod} Kudryavtsev O and Rodochenko V 2017 A Wiener-Hopf factorization approach for pricing barrier options in the Heston model {\it Applied Mathematical Sciences} {\bf 11}(2) 93--100
+
+\end{thebibliography}
+
+\end{document}
