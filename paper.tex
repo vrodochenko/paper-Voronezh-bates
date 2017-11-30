@@ -45,7 +45,7 @@ Replacing the process $V_t$ with a positive constant $V_0$ will make the first e
 The goal of the research is to develop a numerical method to calculate the following conditional expectation
 
 \begin{equation}
-f(S,V,t) = M[e^{-r(T-t)}  {\bf 1}_{\underline{S}_T>H} G(S_T) | S_t = S, V_t = V],
+f(S,V,t) = E[e^{-r(T-t)}  {\bf 1}_{\underline{S}_T>H} G(S_T) | S_t = S, V_t = V],
 \end{equation}
 for the class of models described by (1), where $H$ is an absorbing barrier, $\underline{S}_T (= \inf_{0\le t\le T}S_T)$ is infimum process for the process $S_t$. 
 
@@ -128,15 +128,17 @@ Let's introduce a simpler notation for the drifts we use later:
 \subsection{Carr randomization}
 
 
-In order to be able to operate on small timeframes we can use a procedure known as ''Carr randomization'' (''Canadization''), first introduced in [19] and generalized for a more general case of stochastic control problems in paper \cite{touzi}. Let's denote $f_{n}({Y}_{t_n}, {V}_{t_n}) = f(H\exp(Y_t + \frac{\rho}{\sigma_V}V_t), {V}_{t_n}, t_n)$ -- a Carr approximation for function $f(S,V,t)$ at the moment $t_n$, where $t_i = i \Delta \tau$ and $\Delta \tau = \frac{T}{N}$. Let $\{\tau_i\}_{i=1}^N$ - be a sequence if independent exponentially distributed variables with an average value of $\Delta \tau$. Let's denote $Z_\tau^n=Y_{t_n + \tau}+\frac{\rho}{\sigma_V}V_{t_n + \tau}$.
+In order to be able to operate on small timeframes we can use a procedure known as ''Carr randomization'' (''Canadization''), first introduced in [19] and generalized for a more general case of stochastic control problems in paper \cite{touzi}. Let's denote 
+$$f_{n}({Y}_{t_n}, {V}_{t_n}) = f(H\exp(Y_t + \frac{\rho}{\sigma_V}V_t), {V}_{t_n}, t_n)$$
+a Carr approximation for function $f(S,V,t)$ at the moment $t_n$, where $t_i = i \Delta \tau$ and $\Delta \tau = \frac{T}{N}$. Let $\{\tau_i\}_{i=1}^N$ - be a sequence if independent exponentially distributed variables with an average value of $\Delta \tau$. Let's denote $Z_\tau^n=Y_{t_n + \tau}+\frac{\rho}{\sigma_V}V_{t_n + \tau}$.
 Assuming $f_{N}(Y_T, V_T)=G(H\exp (Y_T+\frac{\rho}{\sigma_V}V_T ))$, we have an opportunity to write down the following:
 
 $$
-f_{n}({Y}_{t_n}, {V}_{t_n}) = M_{t_{n}} [ e^{-r\Delta \tau}  
+f_{n}({Y}_{t_n}, {V}_{t_n}) = E_{t_{n}} [ e^{-r\tau_n}  
 {\bf 1}_{\underline{Z}^n_{\tau_n} > 0} f_{n+1}(Y_{t_n+\tau_n},V_{t_n+\tau_n})], \smallskip\\ n = N-1,..,0 
 $$
 
-This form of expectation can be iteratively calculated and, for the case of model with fixed variance, comes down to a sequence of problems. In our case, however, we need an approximation for the CIR process $V$ in order to compute it.
+This form of expectation can be iteratively calculated for the case of Levy model with fixed variance and comes down to a sequence of problems. However, the presence of stochastic variance in our case makes it necessary to use an approximation for the CIR process $V$, in order to compute it.
 
 \subsection{Approximation}
 
@@ -162,6 +164,7 @@ p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)} =
 $$
 
 In order to maintain correct work of the scheme for different parameters values we should introduce additional rules that make impossible for the negative probabilities to appear in some vertices:
+
 \begin{equation*}
 p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)} :=
 \begin{cases}
@@ -174,7 +177,14 @@ p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)}, & p^{\Delta \tau}_{k^{\Delta \tau}_{
 
 \subsection{Approximate factorization}
 
-%%%%%%%%%% ???????? ????? ??????????? ?????????? ??? ????????????? ???????? V(n,k) ? ? ?????? ????????? ??? ???????? ? ???????? ????????? L_{n,k}, ?????? ??????????? ??? $f_{n}^{k}(y)$  ? ???????? F_n, ? ?? F!
+The tree procedure described above can now be used to obtain problems with fixed variation.
+
+With regard to a Markov chain, the expectations will have a form:
+
+$$
+f_{n}({Y}_{t_n}, {V}_{t_n}) = M_{t_{n}} [ e^{-r\Delta \tau}  
+{\bf 1}_{\underline{Z}^n_{\tau_n} > 0} f_{n+1}(Y_{t_n+\tau_n},V_{t_n+\tau_n})], \smallskip\\ n = N-1,..,0 
+$$
 
 Having fixed the variation in each of the vertices, we now have an opportunity to consider a family of problems with an integro-differential operator that looks as follows:
 
@@ -193,43 +203,41 @@ where $\phi(\xi)$ -- is a characteristic exponent of a compound Poisson process.
 
 For each of vertices $(n,k), n=N-1,...0$ two problems arises -- one in assumption that the transition has gone up to a vertex $(n+1,k_d)$, another one in assumption that the transition has gone down to a vertex $(n+1,k_u)$. 
 
-Let us introduce a shorthand notation $f_{n}^{k}(y)$ = $f(He^{y+\frac{\rho}{\sigma}V(n,k)},V(n,k),n\Delta t)$. In these term $f_{N}^{k}(y) = G(He^{y+\frac{\rho}{\sigma}V(N,k)})$.
+Let us introduce a shorthand notation 
+$$f_{n}^{k}(y) = f_n(He^{y+\frac{\rho}{\sigma}V(n,k)},V(n,k)).$$.
+In these terms $f_{N}^{k}(y) = G(He^{y+\frac{\rho}{\sigma}V(N,k)})$.
 
 To find each of $f_{n}^{k}(y)$, one should solve two problems:
 \begin{gather}
 	\begin{cases}
 	(q - L_{n+1,k_{u}})f^{k_{u}}(y) = {\Delta t}^{-1} f^{k_u}_{n+1}(y) & y > - \frac{\rho}{\sigma}V(n,k) \\
-	f_{n+1}^{k_{u}}(y) = 0 & y \le - \frac{\rho}{\sigma}V(n,k)
+	f^{k_{u}}(y) = 0 & y \le - \frac{\rho}{\sigma}V(n,k)
 	\end{cases}
 	\end{gather}
 \begin{gather}
 	\begin{cases}
 	(q - L_{n+1,k_{d}})f^{k_{d}}(y) = {\Delta t}^{-1} f^{k_d}_{n+1}(y) & y > - \frac{\rho}{\sigma}V(n,k) \\
-	f_{n+1}^{k_{d}}(y) = 0 & y \le - \frac{\rho}{\sigma}V(n,k)
+	f^{k_{d}}(y) = 0 & y \le - \frac{\rho}{\sigma}V(n,k)
 	\end{cases}
 	\end{gather}
 where $q = {\Delta t}^{-1} + r$; $n = 0,1,...,N$; $k = 0,1,...,n$.
 
-Let us denote $\widetilde{f}^{k_u}(y)$ and $\widetilde{f}^{k_d}(y)$ the solutions for (3) and (4). We assume
-$$
-f_{n}^{k}(y) = p_{k^{{\Delta t}}_{d}(n,k)}\widetilde{f}^{k_d}_{n}(y) + p_{k^{{\Delta t}}_{u}(n,k)}\widetilde{f}^{k_u}_{n}(y)$$
-
-Solutions to each of the problems mentioned can be written in terms of operators $\varepsilon^{+}_{q}$ and $\varepsilon^{-}_{q}$ -- the Wiener-Hopf factors (see paper \cite{kudr_and_lev}):
+Let us denote $\widetilde{f}_n^{k_u}(y)$ and $\widetilde{f}_n^{k_d}(y)$ the solutions for (3) and (4). Solutions to each of the problems mentioned can be written in terms of operators $\varepsilon^{+}_{q}$ and $\varepsilon^{-}_{q}$ -- the Wiener-Hopf factors (see paper \cite{kudr_and_lev}):
 
 \begin{eqnarray*}
-	f_{n}^{k_{d}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} {\bf 1}_{(- \frac{\rho}{\sigma_V}V(n,k), +\infty)}(y) \; \varepsilon^{+}_{q} f_{n+1}^{k_d}(y);\\
-	f_{n}^{k_{u}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} {\bf 1}_{(- \frac{\rho}{\sigma_V}V(n,k), +\infty)}(y) \; \varepsilon^{+}_{q} f_{n+1}^{k_u}(y),
+	f_{n}^{k_{d}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} {\bf 1}_{(- \frac{\rho}{\sigma_V}V(n,k), +\infty)}(y) \; \varepsilon^{+}_{q} f_{n+1}^{k_d}(y),\\
+	f_{n}^{k_{u}}(y) = (q{\Delta \tau})^{-1} \; \varepsilon^{-}_{q} {\bf 1}_{(- \frac{\rho}{\sigma_V}V(n,k), +\infty)}(y) \; \varepsilon^{+}_{q} f_{n+1}^{k_u}(y),\\
+	\varepsilon^\pm_q u(x) = (2\pi)^{-1} \int_{-\infty}^{+\infty} e^{ix\xi} \phi^\pm_q (\xi) \hat{u}(\xi) d\xi.
 \end{eqnarray*}
 
-Further on, consequently calculating $f_n^k = p_{k_d^{\Delta \tau}(n,k)} f_n^{k_d}(y) + p_{k_u^{\Delta \tau}(n,k)} f_n^{k_u}(y)$ for $n=N-1,..,0, k = 0,...,n,$
-where $f_n^k = f(He^{y+\frac{\rho}{\sigma_V}V(n,k)}, V(n,k), n\Delta \tau)$, we can get the approximate values for the sought-for functional (2) after returning to the initial notations. Unlike a much simpler case of Heston model \cite{kudr_rod}, the presence of jumps does not allow to use closed formulae for factors unknown at the moment. Analytical formulae for the factors look as follows:
+Further on, consequently calculating $f_{n}^{k}(y) = p_{k^{{\Delta t}}_{d}(n,k)}\widetilde{f}^{k_d}_{n}(y) + p_{k^{{\Delta t}}_{u}(n,k)}\widetilde{f}^{k_u}_{n}(y)$ for $n=N-1,..,0, k = 0,...,n,$, we can get the approximate values for the sought-for functional (2) after returning to the initial notations. Unlike a much simpler case of Heston model \cite{kudr_rod}, the presence of jumps does not allow to use closed formulae for factors unknown at the moment. Analytical formulae for the factors look as follows:
 \begin{eqnarray*}
 	\phi^+_q(\xi)&=&\exp\left[(2\pi i)^{-1}
 	\int_{-\infty+i\omega_-}^{+\infty+i\omega_-}\frac{\xi\ln(q+\psi(\eta))}
-	{\eta(\xi-\eta)}d\eta\right];\\
+	{\eta(\xi-\eta)}d\eta\right],\\
 	\phi^-_q(\xi)&=&\exp\left[-(2\pi i)^{-1}
 	\int_{-\infty+i\omega_+}^{+\infty+i\omega_+}\frac{\xi\ln(q+\psi(\eta))}
-	{\eta(\xi-\eta)}d\eta\right],
+	{\eta(\xi-\eta)}d\eta\right].
 \end{eqnarray*}
 
 The constants $\omega_+$ and $\omega_-$ are so that $\omega_-<0<\omega_+$ play roles of parameters here and are being set to retain convergence of the respective integrals depending on Levy process parameters. In paper \cite{kudr_mex} a general purpose and convenient for a numerical implementation representation of Wiener-Hopf factors was derived. The function $\phi^+_q(\xi)$ allows analytical continuation to a half-plane $\Im \xi>\omega_-$ and can be represented as follows:
@@ -238,7 +246,7 @@ The constants $\omega_+$ and $\omega_-$ are so that $\omega_-<0<\omega_+$ play r
 	\phi^+_q(\xi)&=&\exp\left[i\xi F^+(0)-\xi^2\hat{F}^+(\xi)\right],\\ 
 	F^+(x)&=&{\bf 1}_{(-\infty,0]}(x)(2\pi)^{-1}
 	\int_{-\infty+i\omega_-}^{+\infty+i\omega_-}e^{ix\eta}\frac{\ln(q+\psi(\eta))}
-	{\eta^2}d\eta;
+	{\eta^2}d\eta,
 	\\
 	\hat{F}^+(\xi)&=&\int_{-\infty}^{+\infty}e^{-ix\xi}F^+(x)dx.
 \end{eqnarray*}
@@ -256,8 +264,8 @@ To calculate integrals we use an algorithm of Fast Fourier Transform.
 
 \section{Results and discussion}
 
-In this section we provide the results of the numerical experiments, that demonstrate the convergence and accuracy of the method proposed. We will refer to our method as M\&FWHF-approx, having in mind the use of a Markov Chain approximation and the approximation for Wiener-Hopf factors. To be able to compare the result with the existing methods, we use the European down-and-out put in Heston model with the parameters set as follows: $V_0=0.01$, $\kappa=2$, $\theta=0.01$, $\sigma=0.2$, $\rho=0.5 $, $r=0.095$. Option parameters are: $T=1$, $K=100$, $H=90$.
-We also have closed formulae expressions for the Wiener-Hopf factors for the Heston model. So for comparison we will use the algorithm \cite{kudr_rod} that uses them for computation (which we will refer to as M\&FWHF).
+We provide the results of the numerical experiments, that demonstrate the convergence and accuracy of the method proposed. We will refer to our method as M\&FWHFa, having in mind the use of a Markov Chain approximation and the approximation for Wiener-Hopf factors. To be able to compare the result with the existing methods, we use the European down-and-out put in Heston model with the parameters set as follows: $V_0=0.01$, $\kappa=2$, $\theta=0.01$, $\sigma=0.2$, $\rho=0.5 $, $r=0.095$. Option parameters are: $T=1$, $K=100$, $H=90$.
+We also have closed formulae expressions for the Wiener-Hopf factors for the Heston model. So for comparison we will use the algorithm \cite{kudr_rod} that uses them for computation (which we will refer to as M\&FWHFe).
 
 As a benchmark for all methods we used a plain Monte-Carlo generator that uses a Mersenne Twister as a pseudo-random generator. 
 
@@ -265,15 +273,15 @@ The advanced Alfonsi \cite{alfonsi} MC results were obtained using the code impl
 
 To perform the experiment we used a PC with a configuration: Intel CPU, 2.4 GHz, RAM 8 Gb, Windows 10. The program implementation was made using a scientific Python stack (numpy, scipy and pandas packages).
 
-The algorithm parameters for the M\&FWH are as follows: N is the number of time steps, L is a scale coefficient, which controls the localization error of the FFT, and $M$ is a number of points, meant to control its the discretization error. ``Stock price'' is a price of an underlying asset.
+The algorithm parameters for the M\&FWHe are as follows: N is the number of time steps, L is a scale coefficient, which controls the localization error of the FFT, and $M$ is a number of points, meant to control its the discretization error. ``Stock price'' is a price of an underlying asset.
 
-The algorithm parameters for the M\&FWH-approximare are as follows: N is the number of time steps, h is a distance between the points on a logarithmic scale, which controls the localization error of the FFT, and $M$ is a number of points, meant to control its the discretization error. "Stock price" is a price of an underlying asset.
+The algorithm parameters for the M\&FWHa are as follows: N is the number of time steps, h is a distance between the points on a logarithmic scale, which controls the localization error of the FFT, and $M$ is a number of points, meant to control its the discretization error. "Stock price" is a price of an underlying asset.
 
 Table 1 illustrates the convergence of the method, Table 2 and Table 3 shows absolute and relative error values, respectively. It's therefore natural to assume that similar accuracy can be achieved in models where no closed formulae representations for factors is known.
 
 \begin{table}[h]
 	\caption{\label{opt_values} Barrier put option prices for the case of Heston model, calculated with
-		Standard MC, Alfonsi MC, M*FWHF and FWH-approximate. \\
+		Standard MC, Alfonsi MC, M\&FWHFe and M\&FWHa. \\
 		Heston model parameters: $v_0=0.01$, $\kappa=2$, $\theta=0.01$, $\sigma=0.2$, $ \rho = 0.5$, $ r = 0.095 $ \\
 		Option parameters: $K=100$, $H=90$, $r=0.072310$, $T=1$.\\
 		Method parameters: $h$ -- space variable step, $N$ -- number of time steps
@@ -283,7 +291,7 @@ Table 1 illustrates the convergence of the method, Table 2 and Table 3 shows abs
 		\lineup
 		\begin{tabular}{*{6}{l}}
 			\br
-			Stock   & Standard MC& Alfonsi MC  & M*FWHF        &\multicolumn{2}{c}{FWHF-approximate} \cr                             
+			Stock   & Standard MC& Alfonsi MC  & M\&FWHe        &\multicolumn{2}{c}{FWHFa} \cr                             
 			price 	& (mean  	& (mean  	    &              &                  &                    \cr
 			      	& value) 	& value)  	    &  $N=300$     &   $N=300$        &  $N=300$           \cr
 			& $h=0.0001$& $h=0.0001$	& $M=2^{18}$   & $h=5\cdot10^{-6}$& $h=1\cdot10^{-6}$  \cr
@@ -312,7 +320,7 @@ Table 1 illustrates the convergence of the method, Table 2 and Table 3 shows abs
 		\lineup
 		\begin{tabular}{*{6}{l}}
 			\br
-			Stock	& standard MC& Alfonsi MC  & M*FWHF        &\multicolumn{2}{c}{FWHF-approximate} \cr 
+			Stock	& standard MC& Alfonsi MC  & M*FWHFe        &\multicolumn{2}{c}{FWHFa} \cr 
 			price  	&  	        &   	    &  $N=300$     &   $N=300$        &  $N=300$           \cr
 			& $h=0.0001$& $h=0.0001$	& $M=2^{18}$   & $h=5\cdot10^{-6}$& $h=1\cdot10^{-6}$  \cr
 			& $N=500000$& $N=600000$    & $L=3$        &   $M=2^{20}$     &  $M=2^{20}$        \cr
@@ -330,11 +338,11 @@ Table 1 illustrates the convergence of the method, Table 2 and Table 3 shows abs
 
 \begin{table}[h]
 	\caption{\label{re_values} Relative error values in \% for barrier put option prices for the case of Heston model, calculated with
-		Standard MC, Alfonsi MC, M*FWHF and FWH-approximate. \\
+		Standard MC, Alfonsi MC, M\&FWHFe and M\&FWHa. \\
 		Heston model parameters: $v_0=0.01$, $\kappa=2$, $\theta=0.01$, $\sigma=0.2$, $ \rho = 0.5$, $ r = 0.095 $ \\
 		Option parameters: $K=100$, $H=90$, $r=0.072310$, $T=1$.\\
 		Method parameters: $h$ -- space variable step, $N$ -- number of time steps
-		(or an algorithm parameter for FWHF methods), $L$ -- a scale multiplier parameter for M\&FWHF method, $M$ -- number of points for FWHF methods, $S$ -- stock price.} 
+		(or an algorithm parameter for M\&FWHFa methods), $L$ -- a scale multiplier parameter for M\&FWHF method, $M$ -- number of points for FWHF methods, $S$ -- stock price.} 
 	
 	
 	
@@ -383,7 +391,7 @@ The reported study was funded by RFBR according to the research projects No 15-3
 
 \bibitem{b_s} Black F and Scholes M 1973 The pricing of options and corporate liabilities {\it Journal of Political Economy} {\bf 81}(3) 637--54
 
-\bibitem{feng} Feng Y Q 2017 CVA under Bates model with stochastic default intensity {\it Journal of Mathematical Finance} {\bf 7} 682--698
+\bibitem{feng} Feng Y Q 2017 CVA under Bates model with stochastic default intensity {\it Journal of Mathematical Finance} {\bf 7} 682--98
 
 \bibitem{alfonsi} Alfonsi A 2010 High order discretization schemes for the CIR process: application to affine term structure and Heston models {\it Mathematics of Computation} {\bf 79} 209--37
 
