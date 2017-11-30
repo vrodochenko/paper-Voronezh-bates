@@ -179,13 +179,15 @@ p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)}, & p^{\Delta \tau}_{k^{\Delta \tau}_{
 
 The tree procedure described above can now be used to obtain problems with fixed variation.
 
-With regard to a Markov chain, the expectations will have a form:
+With regard to the Markov chain, the expectations will have a form:
 
-$$
-f_{n}({Y}_{t_n}, {V}_{t_n}) = M_{t_{n}} [ e^{-r\Delta \tau}  
-{\bf 1}_{\underline{Z}^n_{\tau_n} > 0} f_{n+1}(Y_{t_n+\tau_n},V_{t_n+\tau_n})], \smallskip\\ n = N-1,..,0 
-$$
+$$f_{n}({Y}_{t_n}, {V}(n,k)) = p^{\Delta \tau}_{k^{\Delta \tau}_{d}(n,k)} E_{t_{n}} [ e^{-r \tau_n}  
+{\bf 1}_{\underline{Z}^n_{\tau_n} > 0} f_{n+1}(Y_{t_n+\tau_n},V(n+1, k_d)] +$$ \smallskip\\
+$$+ p^{\Delta \tau}_{k^{\Delta \tau}_{u}(n,k)} E_{t_{n}} [ e^{-r \tau_n}  
+{\bf 1}_{\underline{Z}^n_{\tau_n} > 0} f_{n+1}(Y_{t_n+\tau_n},V(n+1, k_u)], \smallskip\\ n = N-1,..,0$$ 
 
+
+where
 Having fixed the variation in each of the vertices, we now have an opportunity to consider a family of problems with an integro-differential operator that looks as follows:
 
 $$L_{n,k} := L_{Y}^{V(n,k)} = \mu_{Y}(V(n,k)) \partial_{y} + \frac{1}{2}\hat{\rho}^2 V(n,k)\partial^2_{yy}$$
